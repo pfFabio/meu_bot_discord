@@ -1,0 +1,51 @@
+# Segredos e variáveis de ambiente
+.env
+
+# Binários compilados do Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+/bot
+/bot.exe
+
+# Diretórios de teste e cache do Go
+/vendor/
+*.test
+
+# Diretórios do sistema e IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Referências clonadas (não pertencem ao projeto)
+/references/
+
+# Gravações de sessão (áudio grande, não commitar)
+/gravacoes/
+
+# Node.js (sidecar audio-bridge)
+audio-bridge/node_modules/
+
+# Arquivos JSON grandes (backups de campanha BetteR20)
+BetteR20*.json
+
+# Cache de tradução
+translation_cache.json
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Agentes / customizações locais
+.agents/
+
+# Músicas e assets de jogadores (muito grandes para o repo)
+/musicas/
+/jogadores/
+
+# Web PDF Reader (diretório auxiliar)
+/web-pdf-reader/
