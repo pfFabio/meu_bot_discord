@@ -56,7 +56,7 @@ def load_session_metadata(session_dir: Path) -> dict:
             print(f"[Aviso] Falha ao ler session.json: {e}", file=sys.stderr)
     return {}
 
-def transcribe_session(session_dir_str: str, model_size: str = "base"):
+def transcribe_session(session_dir_str: str, model_size: str = "small"):
     session_dir = Path(session_dir_str).resolve()
     if not session_dir.exists():
         print(f"Erro: Pasta da sessão não encontrada: {session_dir}", file=sys.stderr)
@@ -94,17 +94,24 @@ def transcribe_session(session_dir_str: str, model_size: str = "base"):
 
             try:
                 audio_data = load_audio(str(ogg))
+                audio_dur = len(audio_data) / 16000.0
+
                 segments, info = model.transcribe(
                     audio_data,
                     language="pt",
-                    beam_size=5,
+                    beam_size=2,
+                    best_of=2,
                     vad_filter=True, # filtra silêncios
-                    vad_parameters=dict(min_silence_duration_ms=500)
+                    vad_parameters=dict(min_silence_duration_ms=500, threshold=0.35),
+                    no_speech_threshold=0.8, # Evita descartar vozes com no_speech_prob intermediário (ex: 0.62)
+                    condition_on_previous_text=False
                 )
 
+                found_segments = False
                 for seg in segments:
                     text = seg.text.strip()
                     if text:
+                        found_segments = True
                         all_segments.append({
                             "speaker": speaker_name,
                             "user_id": uid,
@@ -112,6 +119,28 @@ def transcribe_session(session_dir_str: str, model_size: str = "base"):
                             "end": seg.end,
                             "text": text
                         })
+
+                # Fallback: se o VAD filtrou tudo mas o áudio tem duração significativa (>2s), tenta sem VAD
+                if not found_segments and audio_dur > 2.0:
+                    print(f"[Info] Nenhuma fala via VAD para [{speaker_name}], executando fallback sensível...")
+                    fallback_segs, _ = model.transcribe(
+                        audio_data,
+                        language="pt",
+                        beam_size=2,
+                        vad_filter=False,
+                        no_speech_threshold=0.85,
+                        condition_on_previous_text=False
+                    )
+                    for seg in fallback_segs:
+                        text = seg.text.strip()
+                        if text:
+                            all_segments.append({
+                                "speaker": speaker_name,
+                                "user_id": uid,
+                                "start": seg.start,
+                                "end": seg.end,
+                                "text": text
+                            })
             except Exception as e:
                 print(f"[Erro] Falha ao transcrever {ogg.name}: {e}", file=sys.stderr)
 
@@ -230,7 +259,7 @@ def transcribe_session(session_dir_str: str, model_size: str = "base"):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Transcreve uma sessão de RPG gravada")
     parser.add_argument("--session-dir", required=True, help="Caminho da pasta da sessão")
-    parser.add_argument("--model", default="base", help="Tamanho do modelo (tiny, base, small)")
+    parser.add_argument("--model", default="small", help="Tamanho do modelo (tiny, base, small, medium)")
     args = parser.parse_args()
 
     transcribe_session(args.session_dir, args.model)

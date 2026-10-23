@@ -1,0 +1,2482 @@
+{
+  "sheets": {
+    "sheet_1792707822733823300": {
+      "id": "sheet_1792707822733823300",
+      "user_id": "iziely6210",
+      "name": "Samanta Jaci",
+      "class": "Monk",
+      "subclass": "Misericórdia",
+      "level": 3,
+      "race": "Lupin",
+      "xp": 0,
+      "inspiration": false,
+      "proficiency_bonus": 2,
+      "attributes": {
+        "str": {
+          "score": 8,
+          "modifier": -1
+        },
+        "dex": {
+          "score": 17,
+          "modifier": 3
+        },
+        "con": {
+          "score": 13,
+          "modifier": 1
+        },
+        "int": {
+          "score": 10,
+          "modifier": 0
+        },
+        "wis": {
+          "score": 15,
+          "modifier": 2
+        },
+        "cha": {
+          "score": 12,
+          "modifier": 1
+        }
+      },
+      "armor_class": 15,
+      "initiative": 3,
+      "speed": "40 ft (12m)",
+      "max_hp": 21,
+      "current_hp": 10,
+      "temp_hp": 0,
+      "hit_dice": "3d8",
+      "hit_dice_current": 3,
+      "death_saves": {
+        "successes": 0,
+        "failures": 0
+      },
+      "saving_throws": {
+        "cha": {
+          "modifier": 1,
+          "proficient": false
+        },
+        "con": {
+          "modifier": 1,
+          "proficient": false
+        },
+        "dex": {
+          "modifier": 5,
+          "proficient": true
+        },
+        "int": {
+          "modifier": 0,
+          "proficient": false
+        },
+        "str": {
+          "modifier": 1,
+          "proficient": true
+        },
+        "wis": {
+          "modifier": 2,
+          "proficient": false
+        }
+      },
+      "skills": {
+        "Acrobacia": {
+          "modifier": 5,
+          "proficient": true,
+          "expertise": false,
+          "attribute": "DEX"
+        },
+        "Adestrar Animais": {
+          "modifier": 2,
+          "proficient": false,
+          "expertise": false,
+          "attribute": "WIS"
+        },
+        "Arcanismo": {
+          "modifier": 0,
+          "proficient": false,
+          "expertise": false,
+          "attribute": "INT"
+        },
+        "Atletismo": {
+          "modifier": -1,
+          "proficient": false,
+          "expertise": false,
+          "attribute": "STR"
+        },
+        "Atuação": {
+          "modifier": 1,
+          "proficient": false,
+          "expertise": false,
+          "attribute": "CHA"
+        },
+        "Enganação": {
+          "modifier": 1,
+          "proficient": false,
+          "expertise": false,
+          "attribute": "CHA"
+        },
+        "Furtividade": {
+          "modifier": 5,
+          "proficient": true,
+          "expertise": false,
+          "attribute": "DEX"
+        },
+        "História": {
+          "modifier": 0,
+          "proficient": false,
+          "expertise": false,
+          "attribute": "INT"
+        },
+        "Intimidação": {
+          "modifier": 1,
+          "proficient": false,
+          "expertise": false,
+          "attribute": "CHA"
+        },
+        "Intuição": {
+          "modifier": 4,
+          "proficient": true,
+          "expertise": false,
+          "attribute": "WIS"
+        },
+        "Investigação": {
+          "modifier": 0,
+          "proficient": false,
+          "expertise": false,
+          "attribute": "INT"
+        },
+        "Medicina": {
+          "modifier": 4,
+          "proficient": true,
+          "expertise": false,
+          "attribute": "WIS"
+        },
+        "Natureza": {
+          "modifier": 0,
+          "proficient": false,
+          "expertise": false,
+          "attribute": "INT"
+        },
+        "Percepção": {
+          "modifier": 4,
+          "proficient": true,
+          "expertise": false,
+          "attribute": "WIS"
+        },
+        "Persuasão": {
+          "modifier": 1,
+          "proficient": false,
+          "expertise": false,
+          "attribute": "CHA"
+        },
+        "Prestidigitação": {
+          "modifier": 5,
+          "proficient": true,
+          "expertise": false,
+          "attribute": "DEX"
+        },
+        "Religião": {
+          "modifier": 0,
+          "proficient": false,
+          "expertise": false,
+          "attribute": "INT"
+        },
+        "Sobrevivência": {
+          "modifier": 4,
+          "proficient": true,
+          "expertise": false,
+          "attribute": "WIS"
+        }
+      },
+      "passive_perception": 14,
+      "passive_insight": 10,
+      "passive_investigation": 10,
+      "proficiencies": {
+        "armor": [],
+        "weapons": [
+          "Shortsword",
+          "Simple weapons"
+        ],
+        "tools": [
+          "ferramentas de ladrão",
+          "kit de culinaria",
+          "kit de herbalismo"
+        ],
+        "languages": []
+      },
+      "features": [
+        {
+          "name": "Visão no Escuro",
+          "description": "Você tem Darkvision com um alcance de 60 pés.",
+          "source": "Espécie Lupin"
+        },
+        {
+          "name": "Porrada Feral",
+          "description": "Seus Ataques desarmados causam o dano de corte em vez de dano de Bludgeoning. Além disso, quando você atinge uma criatura com um Ataque Desarmado como parte da ação Ataque no seu turno, você pode usar as opções Dano e o Empurrão. Você pode usar esse benefício apenas uma vez por turno. CD: 8+força(0)+proficiencia(2) = 10",
+          "source": "Espécie Lupin"
+        },
+        {
+          "name": "Uivo",
+          "description": "Como uma Ação Bônus, você solta um uivo sobrenatural. Cada criatura de sua escolha dentro de 15 pés de você deve ter sucesso em um lance de salvamento de sabedoria (DC 8 mais seu modificador de Constituição(1) e bônus de proficiência(2) = 11) ou ter desvantagem em rolos de ataque e lançamentos de salvamento até o início do seu próximo turno. Você pode usar essa característica várias vezes igual ao seu Bônus de Proficiência e recuperar todos os usos gastos quando terminar um Longo Descanso.",
+          "source": "Espécie Lupin"
+        },
+        {
+          "name": "Atacante Selvagem",
+          "description": "Uma vez por turno quando você acertar um alvo com uma arma, você pode rolar os dados de dano da arma duas vezes e usar qualquer um dos dois rolar contra o alvo.",
+          "source": "Talento"
+        },
+        {
+          "name": "Golpe Desarmado",
+          "description": "Você pode fazer uma ataque desarmado como uma Ação Bônus.",
+          "source": "Monge"
+        },
+        {
+          "name": "Dado de Monge",
+          "description": "Você pode rolar 1d6 no lugar do dano normal de suas armas Unarmed Strike ou Monk. Este dado muda à medida que você ganha níveis de Monge, como mostrado na coluna Artes Marciais da tabela Características do Monge",
+          "source": "Monge"
+        },
+        {
+          "name": "Ataques Hábeis",
+          "description": "Você pode usar seu modificador de Destreza em vez de seu modificador de Força para as rolagens de ataque e dano de Ataques Desarmados e Monge. Além disso, quando você usa a opção Grapple ou Shove do seu Unarmed Strike, você pode usar seu modificador de destreza em vez do seu modificador de força para determinar o CV de salvamento.",
+          "source": "Monge"
+        },
+        {
+          "name": "Defesa Sábia",
+          "description": "Enquanto você não está usando armaduras ou empunhando um Escudo, sua Classe de Armadura base é igual a 10 mais seus modificadores de Destreza e Sabedoria.",
+          "source": "Monge"
+        },
+        {
+          "name": "Foco",
+          "description": "Seu nível de Monge determina o número de pontos que você tem Quando você gasta um Ponto de Foco, ele não está disponível até terminar um Descanso Curto ou Longo, no final do qual você recupera todos os seus pontos gastos. CD = 8+SAB(2)+prof(2)",
+          "source": "Monge"
+        },
+        {
+          "name": "Enxurrada de Golpes",
+          "description": "Você pode gastar 1 Ponto de Foco para fazer dois Ataques Desarmados como uma Ação Bônus",
+          "source": "Monge (Foco)"
+        },
+        {
+          "name": "Defesa Paciente",
+          "description": "Você pode tomar a ação Desengatar como uma Ação Bônus. Alternativamente, você pode gastar 1 Ponto de Foco para tomar as ações de Desengajamento e Dodge como uma Ação Bônus.",
+          "source": "Monge (Foco)"
+        },
+        {
+          "name": "Passo do Vento",
+          "description": "Você pode tomar a ação Dash como uma Ação Bônus. Alternativamente, você pode gastar 1 Ponto de foco para tomar as ações de desengajar e Dash como uma ação bônus, e sua distância de salto é dobrada para a curva.",
+          "source": "Monge (Foco)"
+        },
+        {
+          "name": "Corrida Desarmada",
+          "description": "Sua velocidade aumenta em 10 pés enquanto você não está usando armadura ou empunhando um Escudo. Esse bônus aumenta quando você atinge certos níveis de Monk, como mostrado na tabela Características do Monge.",
+          "source": "Monge"
+        },
+        {
+          "name": "Metabolismo",
+          "description": "Quando você rola Iniciativa, você pode recuperar todos os Pontos de Foco gastos. Quando você fizer isso, role seus Artes Marciais mais seu nível de Monge recupere de vida. Depois de usar esse recurso, você não pode usá-lo novamente até terminar um Longo Descanso.",
+          "source": "Monge"
+        },
+        {
+          "name": "Desviar Ataque",
+          "description": "Quando uma rolagem de ataque atinge você e seu dano é do tipo Bludgeoning, Piercing ou Slashing, você pode tomar uma reação para reduzir o dano total do ataque contra você. A redução é igual a 1d10 mais o seu modificador de destreza e nível de monge. Se você reduzir o dano para 0, você pode gastar 1 Ponto de Foco para redirecionar parte da força do ataque. Se você fizer isso, escolha uma criatura que você pode ver dentro de 5 pés de si mesmo se o ataque foi um ataque corpo a corpo ou uma criatura que você pode ver dentro de 60 pés de si mesmo que não está atrás da Total Cover se o ataque foi um ataque à distância. Essa criatura deve ter sucesso em um lançamento de salvamento de destreza ou sofrer dano igual a dois rolagens de seus dados de artes marciais mais seu modificador de destreza. O dano é o mesmo tipo causado pelo ataque.",
+          "source": "Monge"
+        },
+        {
+          "name": "Mão de Dano",
+          "description": "Uma vez por turno quando você acertar uma criatura com um ataque Desarmado e causar dano, você pode gastar 1 Ponto de Foco para causar dano Necrótico extra igual a um dado de Artes Marciais mais seu modificador de Sabedoria.",
+          "source": "Caminho da Misericórdia"
+        },
+        {
+          "name": "Mão da Cura",
+          "description": "Como uma ação mágica, você pode gastar 1 Ponto de Foco para tocar uma criatura e restaurar um número de Pontos de vida igual a um dado de Artes Marciais mais seu modificador de Sabedoria. Quando você usa sua Enxurrada de Golpes, você pode substituir um dos Unarmed Strikes por um uso desse recurso sem gastar um Focus Point para a cura.",
+          "source": "Caminho da Misericórdia"
+        }
+      ],
+      "limited_uses": [
+        {
+          "name": "Foco",
+          "max_uses": 3,
+          "current_uses": 3,
+          "reset_on": "Descanso Curto"
+        },
+        {
+          "name": "Uivos",
+          "max_uses": 2,
+          "current_uses": 1,
+          "reset_on": "Descanso Curto"
+        },
+        {
+          "name": "Metabolismo",
+          "max_uses": 1,
+          "current_uses": 0,
+          "reset_on": "Descanso Curto"
+        }
+      ],
+      "spellcasting": {
+        "ability": "",
+        "save_dc": 10,
+        "attack_bonus": 0,
+        "slots": {},
+        "spells": []
+      },
+      "attacks": [
+        {
+          "name": "Spear (One-Handed)",
+          "attack_bonus": "+5",
+          "damage": "1d6+3 Piercing",
+          "damage_type": "Piercing"
+        },
+        {
+          "name": "Spear (Two-Handed)",
+          "attack_bonus": "+5",
+          "damage": "1d8+3 Piercing",
+          "damage_type": "Piercing"
+        },
+        {
+          "name": "Monk Unarmed Strike",
+          "attack_bonus": "+5",
+          "damage": "1d6+3 Cortante",
+          "damage_type": "Cortante"
+        },
+        {
+          "name": "Adaga",
+          "attack_bonus": "+5",
+          "damage": "1d4+3 Perfurante",
+          "damage_type": "Perfurante"
+        }
+      ],
+      "coins": {
+        "cp": 0,
+        "sp": 0,
+        "ep": 0,
+        "gp": 153,
+        "pp": 0
+      },
+      "inventory": [
+        {
+          "name": "mochila",
+          "quantity": 1
+        },
+        {
+          "name": "saco de dormir",
+          "quantity": 1
+        },
+        {
+          "name": "mess kit",
+          "quantity": 1
+        },
+        {
+          "name": "pederneira",
+          "quantity": 1
+        },
+        {
+          "name": "cantil de agua",
+          "quantity": 1
+        },
+        {
+          "name": "Spear",
+          "quantity": 1
+        },
+        {
+          "name": "daggers",
+          "quantity": 7
+        },
+        {
+          "name": "ferramentas de ladrão",
+          "quantity": 1
+        },
+        {
+          "name": "caltrop",
+          "quantity": 1
+        },
+        {
+          "name": "traje",
+          "quantity": 1
+        },
+        {
+          "name": "gancho e corta",
+          "quantity": 1
+        },
+        {
+          "name": "pregos de ferro",
+          "quantity": 10
+        },
+        {
+          "name": "espelho",
+          "quantity": 1
+        },
+        {
+          "name": "bolsas",
+          "quantity": 2
+        },
+        {
+          "name": "corda",
+          "quantity": 2
+        },
+        {
+          "name": "roupas de viajante",
+          "quantity": 1
+        }
+      ],
+      "created_at": "2026-10-22T19:23:42.7338233-03:00",
+      "updated_at": "2026-10-22T21:45:56.4544467-03:00"
+    },
+    "sheet_lyana_hidefeather": {
+      "id": "sheet_lyana_hidefeather",
+      "user_id": "user_lyana_hidefeather",
+      "name": "Lyana Hidefeather",
+      "class": "Rogue",
+      "subclass": "Assasin",
+      "level": 3,
+      "race": "DANO/TIPO",
+      "background": "Merchant",
+      "alignment": "Caótico e Bom",
+      "xp": 0,
+      "inspiration": false,
+      "proficiency_bonus": 2,
+      "attributes": {
+        "str": {
+          "score": 8,
+          "modifier": -1
+        },
+        "dex": {
+          "score": 17,
+          "modifier": 3
+        },
+        "con": {
+          "score": 14,
+          "modifier": 2
+        },
+        "int": {
+          "score": 10,
+          "modifier": 0
+        },
+        "wis": {
+          "score": 14,
+          "modifier": 2
+        },
+        "cha": {
+          "score": 12,
+          "modifier": 1
+        }
+      },
+      "armor_class": 14,
+      "initiative": 3,
+      "speed": "30 ft (9m)",
+      "max_hp": 24,
+      "current_hp": 24,
+      "temp_hp": 0,
+      "hit_dice": "3d8",
+      "hit_dice_current": 3,
+      "death_saves": {
+        "successes": 0,
+        "failures": 0
+      },
+      "saving_throws": {
+        "cha": {
+          "modifier": 1,
+          "proficient": false
+        },
+        "con": {
+          "modifier": 2,
+          "proficient": false
+        },
+        "dex": {
+          "modifier": 5,
+          "proficient": true
+        },
+        "int": {
+          "modifier": 2,
+          "proficient": true
+        },
+        "str": {
+          "modifier": -1,
+          "proficient": false
+        },
+        "wis": {
+          "modifier": 2,
+          "proficient": false
+        }
+      },
+      "skills": {},
+      "passive_perception": 14,
+      "passive_insight": 10,
+      "passive_investigation": 10,
+      "proficiencies": {
+        "armor": [
+          "Armaduras Leves"
+        ],
+        "weapons": [
+          "Armas Simples",
+          "Azagaia Curta com Gancho",
+          "Besta de Mão",
+          "Chicote",
+          "Cimitarra",
+          "Espada Curta",
+          "Hoopak",
+          "Rapieira"
+        ],
+        "tools": [
+          "Ferramentas de Ladrão",
+          "Ferramentas de Navegador",
+          "Kit de Disfarce",
+          "Kit de Envenenador"
+        ],
+        "languages": [
+          "Comum",
+          "Gnomo",
+          "Gíria dos Ladrões",
+          "Halfling"
+        ]
+      },
+      "features": [
+        {
+          "name": "Visão no Escuro",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Voo",
+          "description": "Penas Silenciosas",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Sortuda",
+          "description": "Ferramentas de Navegador",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Adaga do Alerta",
+          "description": "Nível 1: Expertise",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Ataque Furtivo",
+          "description": "Gíria dos Ladrões",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Maestria com Armas",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Ação Ardilosa",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Assassinar",
+          "description": "Ferramentas do Assassino",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Mira Firme",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "você como se fosse luz plena, e na escuridão como se fosse",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "luz fraca. Você percebe as cores nessa escuridão apenas",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "como tons de cinza.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "à sua velocidade de caminhada. Você não pode usar essa",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "velocidade de voo se estiver usando uma armadura média",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "ou pesada.",
+          "description": "Penas Silenciosas",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Você tem proficiência na perícia Furtividade.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "tem um número de Pontos de Sorte igual ao seu Bônus de",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Proficiência e pode gastar esses pontos para obter os",
+          "description": "benefícios abaixo. Você recupera os Pontos de Sorte gastos",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "quando termina um Descanso Longo. Vantagem. Quando",
+          "description": "você rolar um d20 para um Teste de d20, pode gastar 1",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Ponto de Sorte para obter Vantagem na rolagem.",
+          "description": "Desvantagem. Quando uma criatura rolar um d20 para uma",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "jogada de ataque contra você, você pode gastar 1 Ponto de",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Sorte para impor Desvantagem nessa rolagem.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Ferramentas de Navegador",
+          "description": "Habilidade: Sabedoria. Utilização: Traçar uma rota (CD",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "10) ou determinar sua posição observando as estrelas (CD",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "15). Ferramenta. Se você tiver proficiência com uma",
+          "description": "ferramenta, adicione seu Bônus de Proficiência a qualquer",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "teste de habilidade que fizer usando essa ferramenta. Se",
+          "description": "você tiver proficiência em uma perícia usada nesse teste,",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "você também terá Vantagem no teste.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "sintonizado com ela, você e os aliados a até 9 metros de",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "você recebem os seguintes benefícios. Alerta. A arma",
+          "description": "desperta magicamente cada criatura afetada que esteja",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "dormindo naturalmente quando o combate começa. Esse",
+          "description": "benefício não desperta uma criatura de um sono induzido",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "magicamente. Prontidão Sobrenatural. Cada criatura",
+          "description": "afetada tem Vantagem em suas jogadas de Iniciativa.",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Nível 1: Expertise",
+          "description": "Você ganha Expertise em duas das suas proficiências em",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "perícias, à sua escolha. No nível 6 de Ladino, você ganha",
+          "description": "Expertise em mais duas das suas proficiências em perícias,",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "à sua escolha.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "de um inimigo. Uma vez por turno, você pode causar 1d6",
+          "description": "de dano extra a uma criatura que atingir com uma jogada",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "de ataque se tiver Vantagem na rolagem e o ataque usar",
+          "description": "uma arma de Acuidade ou uma arma à Distância. O tipo do",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "dano extra é o mesmo da arma. Você não precisa ter",
+          "description": "Vantagem na jogada de ataque se pelo menos um dos seus",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "aliados estiver a até 1,5 metro do alvo, o aliado não estiver",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "com a condição Incapacitado e você não tiver Desvantagem",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "na jogada de ataque. O dano extra aumenta conforme você",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "ganha níveis de Ladino, conforme indicado na coluna",
+          "description": "Ataque Furtivo da tabela de Características do Ladino.",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Gíria dos Ladrões",
+          "description": "Você aprendeu vários idiomas nas comunidades onde",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "exercia seus talentos de ladino. Você conhece a Gíria dos",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Ladrões e um outro idioma à sua escolha, escolhido entre",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "os idiomas das tabelas do Capítulo 2.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "propriedades de Maestria de dois tipos de armas à sua",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "escolha com os quais você tenha proficiência, como",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Adagas e Arcos Curtos. Sempre que você terminar um",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Descanso Longo, poderá mudar os tipos de armas",
+          "description": "escolhidos. Por exemplo, você poderia trocar para usar as",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "propriedades de Maestria de Cimitarras e Espadas Curtas.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "mova e aja rapidamente. No seu turno, você pode realizar",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "uma das seguintes ações como uma Ação Bônus: Correr,",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Desengajar ou Esconder-se.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "seguintes benefícios. Iniciativa. Você tem Vantagem nas",
+          "description": "jogadas de Iniciativa. Ataques Surpresa. Durante a primeira",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "rodada de cada combate, você tem Vantagem nas jogadas",
+          "description": "de ataque contra qualquer criatura que ainda não tenha",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "realizado um turno. Se o seu Ataque Furtivo atingir",
+          "description": "qualquer alvo durante essa rodada, o alvo sofre dano extra",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "do mesmo tipo da arma, igual ao seu nível de Ladino.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Ferramentas do Assassino",
+          "description": "Você recebe um Kit de Disfarce e um Kit de Envenenador,",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "e tem proficiência com ambos.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "próxima jogada de ataque durante o turno atual. Você só",
+          "description": "pode usar essa característica se não tiver se movido durante",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "este turno e, depois de usá-la, seu Deslocamento será 0 até",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "o final do turno atual.",
+          "description": "",
+          "source": "Geral"
+        }
+      ],
+      "limited_uses": [
+        {
+          "name": "Sortuda",
+          "max_uses": 2,
+          "current_uses": 2,
+          "reset_on": "Descanso Longo"
+        }
+      ],
+      "spellcasting": {
+        "ability": "",
+        "save_dc": 10,
+        "attack_bonus": 0,
+        "slots": {},
+        "spells": []
+      },
+      "attacks": [
+        {
+          "name": "Adaga",
+          "attack_bonus": "+5",
+          "damage": "1d4+3 Piercing"
+        },
+        {
+          "name": "Espada Curta",
+          "attack_bonus": "+5",
+          "damage": "1d6+3 Piercing"
+        },
+        {
+          "name": "Arco Curto",
+          "attack_bonus": "+5",
+          "damage": "1d6+3 Piercing"
+        },
+        {
+          "name": "Adaga do Alerta",
+          "attack_bonus": "+5",
+          "damage": "1d4+3 Piercing"
+        }
+      ],
+      "coins": {
+        "cp": 0,
+        "sp": 0,
+        "ep": 0,
+        "gp": 51,
+        "pp": 0
+      },
+      "inventory": [
+        {
+          "name": "Armadura de Couro",
+          "quantity": 1
+        },
+        {
+          "name": "Adaga",
+          "quantity": 2
+        },
+        {
+          "name": "Adaga do Alerta",
+          "quantity": 1
+        },
+        {
+          "name": "Espada Curta",
+          "quantity": 1
+        },
+        {
+          "name": "Arco Curto",
+          "quantity": 1
+        },
+        {
+          "name": "Flechas",
+          "quantity": 20
+        },
+        {
+          "name": "Aljava",
+          "quantity": 1
+        },
+        {
+          "name": "Ferramentas de Navegador",
+          "quantity": 1
+        },
+        {
+          "name": "Ferramentas de Ladrão",
+          "quantity": 1
+        },
+        {
+          "name": "Kit de Disfarce",
+          "quantity": 1
+        },
+        {
+          "name": "Kit de Envenenador",
+          "quantity": 1
+        },
+        {
+          "name": "Roupas de Viajante",
+          "quantity": 1
+        },
+        {
+          "name": "Mochila",
+          "quantity": 1
+        },
+        {
+          "name": "Esferas de Rolamento (Ball Bearings)",
+          "quantity": 1
+        },
+        {
+          "name": "Sino",
+          "quantity": 1
+        },
+        {
+          "name": "Pé de Cabra",
+          "quantity": 1
+        },
+        {
+          "name": "Lanterna Coberta",
+          "quantity": 1
+        },
+        {
+          "name": "Corda de Seda",
+          "quantity": 1
+        },
+        {
+          "name": "Caixa de Isqueiro",
+          "quantity": 1
+        },
+        {
+          "name": "Odre",
+          "quantity": 1
+        }
+      ],
+      "created_at": "0001-01-01T00:00:00Z",
+      "updated_at": "0001-01-01T00:00:00Z"
+    },
+    "sheet_tharok_trunk": {
+      "id": "sheet_tharok_trunk",
+      "user_id": "user_tharok_trunk",
+      "name": "Tharok Trunk",
+      "class": "Cleric",
+      "subclass": "Light Domain",
+      "level": 3,
+      "race": "Iniciado em Magia (Druida)",
+      "background": "Guide",
+      "alignment": "Lawful Good",
+      "xp": 0,
+      "inspiration": false,
+      "proficiency_bonus": 2,
+      "attributes": {
+        "str": {
+          "score": 14,
+          "modifier": 2
+        },
+        "dex": {
+          "score": 8,
+          "modifier": -1
+        },
+        "con": {
+          "score": 14,
+          "modifier": 2
+        },
+        "int": {
+          "score": 12,
+          "modifier": 1
+        },
+        "wis": {
+          "score": 17,
+          "modifier": 3
+        },
+        "cha": {
+          "score": 10,
+          "modifier": 0
+        }
+      },
+      "armor_class": 18,
+      "initiative": -1,
+      "speed": "30 ft (9m)",
+      "max_hp": 24,
+      "current_hp": 24,
+      "temp_hp": 0,
+      "hit_dice": "3d8",
+      "hit_dice_current": 3,
+      "death_saves": {
+        "successes": 0,
+        "failures": 0
+      },
+      "saving_throws": {
+        "cha": {
+          "modifier": 2,
+          "proficient": true
+        },
+        "con": {
+          "modifier": 2,
+          "proficient": false
+        },
+        "dex": {
+          "modifier": -1,
+          "proficient": false
+        },
+        "int": {
+          "modifier": 1,
+          "proficient": false
+        },
+        "str": {
+          "modifier": 2,
+          "proficient": false
+        },
+        "wis": {
+          "modifier": 5,
+          "proficient": true
+        }
+      },
+      "skills": {},
+      "passive_perception": 15,
+      "passive_insight": 10,
+      "passive_investigation": 10,
+      "proficiencies": {
+        "armor": [
+          "Heavy armor",
+          "Light",
+          "Medium armor",
+          "Shields"
+        ],
+        "weapons": [
+          "Martial weapons",
+          "Simple weapons 18 -1 30 Pontos de Vida Máximo"
+        ],
+        "tools": [
+          "Cartographer's Tools"
+        ],
+        "languages": [
+          "Comum",
+          "Loxodon"
+        ]
+      },
+      "features": [
+        {
+          "name": "Constituição Poderosa",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Serenidade Loxodonte",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Armadura Natural",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Tromba",
+          "description": "Olfato Aguçado",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Iniciado em Magia (Druida)",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Conjuração",
+          "description": "Ordem Divina",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Canalizar Divindade",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Centelha Divina",
+          "description": "Expulsar Mortos-Vivos",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Radiação do Amanhecer",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Clarão Protetor",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "determinar sua capacidade de carga e o peso que pode",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "empurrar, arrastar ou levantar.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Enfeitiçado ou Amedrontado.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "usando armadura, sua CA será 12 + seu modificador de",
+          "description": "Constituição. Você pode usar sua armadura natural para",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "determinar sua CA se a armadura que estiver usando",
+          "description": "resultar em uma CA menor. Os benefícios de um escudo se",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "aplicam normalmente enquanto você estiver usando sua",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "armadura natural.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "tubo respiratório. Ela tem um alcance de 1,5 metro e pode",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "levantar uma quantidade de quilos igual a cinco vezes seu",
+          "description": "valor de Força. Você pode usá-la para realizar as seguintes",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "tarefas simples: levantar, soltar, segurar, empurrar ou puxar",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "um objeto ou criatura; abrir ou fechar uma porta ou",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "recipiente; agarrar alguém; ou realizar um ataque",
+          "description": "desarmado. Seu Mestre pode permitir que outras tarefas",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "simples sejam adicionadas a essa lista de opções. Sua",
+          "description": "tromba não pode empunhar armas ou escudos nem realizar",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "qualquer coisa que exija precisão manual, como usar",
+          "description": "ferramentas ou itens mágicos ou executar os componentes",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "somáticos de uma magia.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Olfato Aguçado",
+          "description": "Graças à sua tromba sensível, você tem Vantagem em testes",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "de Sabedoria (Percepção), Sabedoria (Sobrevivência) e",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Inteligência (Investigação) que envolvam o olfato.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "aprende dois truques à sua escolha das listas de magias de",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Druida. Inteligência, Sabedoria ou Carisma é sua",
+          "description": "habilidade de conjuração para as magias deste talento",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "(escolha quando selecionar este talento). Magia de 1º",
+          "description": "Círculo. Escolha uma magia de 1º círculo da mesma lista",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "que você selecionou para os truques deste talento. Você",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "sempre tem essa magia preparada. Você pode conjurá-la",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "uma vez sem gastar um espaço de magia e recupera a",
+          "description": "capacidade de conjurá-la dessa forma quando terminar um",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Descanso Longo. Você também pode conjurar a magia",
+          "description": "usando quaisquer espaços de magia que possua. Alteração",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "de Magia. Sempre que ganhar um novo nível, você pode",
+          "description": "substituir uma das magias escolhidas para este talento por",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "uma magia diferente do mesmo círculo da lista de magias",
+          "description": "escolhida. Repetível. Você pode escolher este talento mais",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "de uma vez, mas deve escolher uma lista de magias",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "diferente a cada vez.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "meditação. Consulte o Capítulo 7 para conhecer as regras",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "de conjuração de magias. As informações abaixo detalham",
+          "description": "como você usa essas regras com as magias de Clérigo, que",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "aparecem na lista de magias de Clérigo mais adiante na",
+          "description": "descrição da classe. Truques. Você conhece três truques à",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "sua escolha da lista de magias de Clérigo. Orientação,",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Chama Sagrada e Taumaturgia são recomendados. Sempre",
+          "description": "que ganhar um nível de Clérigo, você pode substituir um",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "dos seus truques por outro truque à sua escolha da lista de",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "magias de Clérigo. Ao atingir os níveis 4 e 10 de Clérigo,",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "você aprende outro truque à sua escolha da lista de magias",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "de Clérigo, conforme indicado na coluna Truques da tabela",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "de Características do Clérigo. Espaços de Magia. A tabela",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "de Características do Clérigo mostra quantos espaços de",
+          "description": "magia você possui para conjurar suas magias de 1º círculo",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "ou superior. Você recupera todos os espaços de magia",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "gastos quando termina um Descanso Longo. Magias",
+          "description": "Preparadas de 1º Círculo ou Superior. Você prepara a lista",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "de magias de 1º círculo ou superior que estão disponíveis",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "para você conjurar com esta característica. Para começar,",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "escolha quatro magias de 1º círculo da lista de magias de",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Clérigo. Bênção, Curar Ferimentos, Raio Guiador e Escudo",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "da Fé são recomendadas. O número de magias da sua lista",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "aumenta conforme você ganha níveis de Clérigo, conforme",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "indicado na coluna Magias Preparadas da tabela de",
+          "description": "Características do Clérigo. Sempre que esse número",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "aumentar, escolha magias adicionais da lista de magias de",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Clérigo até que o número de magias da sua lista",
+          "description": "corresponda ao número indicado na tabela. As magias",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "escolhidas devem ser de um círculo para o qual você tenha",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "espaços de magia. Por exemplo, se você for um Clérigo de",
+          "description": "3º nível, sua lista de magias preparadas pode incluir seis",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "magias de 1º e 2º círculos, em qualquer combinação. Se",
+          "description": "outra característica de Clérigo conceder a você magias que",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "estejam sempre preparadas, essas magias não contam para",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "o número de magias que você pode preparar com esta",
+          "description": "característica, mas continuam contando como magias de",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Clérigo para você. Alterando suas Magias Preparadas.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Sempre que terminar um Descanso Longo, você pode",
+          "description": "alterar sua lista de magias preparadas, substituindo",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "quaisquer magias da lista por outras magias de Clérigo para",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "as quais você tenha espaços de magia. Habilidade de",
+          "description": "Conjuração. Sabedoria é sua habilidade de conjuração para",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "suas magias de Clérigo. Foco de Conjuração. Você pode",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "usar um Símbolo Sagrado como Foco de Conjuração para",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "suas magias de Clérigo.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Ordem Divina",
+          "description": "Você se dedicou ao seguinte papel sagrados: Protetor.",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Treinado para a batalha, você ganha proficiência com",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "armas marciais e treinamento com armaduras pesadas.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Exteriores para alimentar efeitos mágicos. Você começa",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "com dois desses efeitos: Centelha Divina e Expulsar",
+          "description": "Mortos-Vivos, cada um descrito abaixo. Sempre que usar o",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Canalizar Divindade desta classe, escolha qual efeito de",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Canalizar Divindade desta classe será criado. Você ganha",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "opções de efeitos adicionais em níveis mais altos de",
+          "description": "Clérigo. Você pode usar o Canalizar Divindade desta classe",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "duas vezes. Você recupera um uso gasto quando termina",
+          "description": "um Descanso Curto e recupera todos os usos gastos quando",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "termina um Descanso Longo. Você ganha usos adicionais",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "ao alcançar determinados níveis de Clérigo, conforme",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "indicado na coluna Canalizar Divindade da tabela de",
+          "description": "Características do Clérigo. Se um efeito de Canalizar",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Divindade exigir um teste de resistência, a CD será igual à",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "CD dos testes de resistência das suas magias, determinada",
+          "description": "pela característica Conjuração desta classe. Você rola 1d8",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "adicional ao alcançar os níveis 7 (2d8), 13 (3d8) e 18 (4d8)",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "de Clérigo.",
+          "description": "Centelha Divina",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Como uma ação Mágica, você aponta seu Símbolo Sagrado",
+          "description": "para outra criatura que possa ver a até 9 metros de você e",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "concentra energia divina nela. Role 1d8 e adicione seu",
+          "description": "modificador de Sabedoria. Você pode restaurar Pontos de",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Vida da criatura em uma quantidade igual ao total ou fazer",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "com que a criatura realize um teste de resistência de",
+          "description": "Constituição. Se falhar no teste, a criatura sofre dano",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Necrótico ou Radiante (à sua escolha) igual ao total. Se for",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "bem-sucedida, a criatura sofre metade desse dano",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "(arredondado para baixo).",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Expulsar Mortos-Vivos",
+          "description": "Como uma ação Mágica, você apresenta seu Símbolo",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Sagrado e repreende criaturas Mortas-Vivas. Cada Morto-",
+          "description": "Vivo à sua escolha a até 9 metros de você deve realizar um",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "teste de resistência de Sabedoria. Se a criatura falhar no",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "teste, ela fica com as condições Amedrontado e",
+          "description": "Incapacitado por 1 minuto. Durante esse período, ela tenta",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "se afastar de você o máximo possível em seus turnos. Esse",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "efeito termina antecipadamente na criatura se ela sofrer",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "qualquer dano, se você ficar com a condição Incapacitado",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "ou se você morrer.",
+          "description": "Radiação do Amanhecer",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Como uma ação Mágica, você apresenta seu Símbolo",
+          "description": "Sagrado e gasta um uso do seu Canalizar Divindade para",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "emitir um clarão de luz em uma Emanação de 9 metros",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "originada em você. Qualquer Escuridão mágica — como",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "aquela criada pela magia Escuridão — nessa área é",
+          "description": "dissipada. Além disso, cada criatura à sua escolha nessa",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "área deve realizar um teste de resistência de Constituição,",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "sofrendo dano Radiante igual a 2d10 + seu nível de Clérigo",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "se falhar no teste, ou metade desse dano se for bem-",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "sucedida.",
+          "description": "",
+          "source": "Geral"
+        }
+      ],
+      "limited_uses": [
+        {
+          "name": "Canalizar Divindade",
+          "max_uses": 2,
+          "current_uses": 2,
+          "reset_on": "Descanso Curto"
+        },
+        {
+          "name": "Clarão Protetor",
+          "max_uses": 3,
+          "current_uses": 3,
+          "reset_on": "Descanso Longo"
+        }
+      ],
+      "spellcasting": {
+        "ability": "Sabedoria",
+        "save_dc": 10,
+        "attack_bonus": 0,
+        "slots": {
+          "1": {
+            "level": 1,
+            "max": 4,
+            "used": 0
+          },
+          "2": {
+            "level": 2,
+            "max": 2,
+            "used": 0
+          }
+        },
+        "spells": [
+          {
+            "name": "Light",
+            "level": 0,
+            "prepared": true
+          },
+          {
+            "name": "Mold Earth",
+            "level": 0,
+            "prepared": true
+          },
+          {
+            "name": "Sacred Flame",
+            "level": 0,
+            "prepared": true
+          },
+          {
+            "name": "Shillelagh",
+            "level": 0,
+            "prepared": true
+          },
+          {
+            "name": "Spare the Dying",
+            "level": 0,
+            "prepared": true
+          },
+          {
+            "name": "Burning Hands",
+            "level": 1,
+            "prepared": true
+          },
+          {
+            "name": "Bless",
+            "level": 1,
+            "prepared": true
+          },
+          {
+            "name": "Detect Magic",
+            "level": 1,
+            "prepared": true
+          },
+          {
+            "name": "Healing Word",
+            "level": 1,
+            "prepared": true
+          },
+          {
+            "name": "Faerie Fire",
+            "level": 1,
+            "prepared": true
+          },
+          {
+            "name": "Goodberry",
+            "level": 1,
+            "prepared": true
+          },
+          {
+            "name": "Lesser Restoration",
+            "level": 2,
+            "prepared": true
+          },
+          {
+            "name": "Prayer of Healing",
+            "level": 2,
+            "prepared": true
+          },
+          {
+            "name": "Scorching Ray",
+            "level": 2,
+            "prepared": true
+          },
+          {
+            "name": "See Invisibility",
+            "level": 2,
+            "prepared": true
+          },
+          {
+            "name": "Spiritual Weapon",
+            "level": 2,
+            "prepared": true
+          }
+        ]
+      },
+      "attacks": [
+        {
+          "name": "Clava",
+          "attack_bonus": "+4",
+          "damage": "1d4+2 Bludgeo…"
+        },
+        {
+          "name": "Clava (Shillelagh)",
+          "attack_bonus": "+5",
+          "damage": "1d8+3 Bludgeo…"
+        },
+        {
+          "name": "Scorching Ray",
+          "attack_bonus": "+5",
+          "damage": "2d6 Fire"
+        },
+        {
+          "name": "Spiritual Weapon",
+          "attack_bonus": "+5",
+          "damage": "1d8+3 Force"
+        }
+      ],
+      "coins": {
+        "cp": 0,
+        "sp": 0,
+        "ep": 0,
+        "gp": 87,
+        "pp": 0
+      },
+      "inventory": [
+        {
+          "name": "Roupas de Viajante",
+          "quantity": 1
+        },
+        {
+          "name": "Cota de Malha",
+          "quantity": 1
+        },
+        {
+          "name": "Escudo com Símbolo Sagrado",
+          "quantity": 1
+        },
+        {
+          "name": "Clava",
+          "quantity": 1
+        },
+        {
+          "name": "Isqueiro",
+          "quantity": 1
+        },
+        {
+          "name": "Mochila",
+          "quantity": 1
+        },
+        {
+          "name": "Saco de Dormir",
+          "quantity": 1
+        },
+        {
+          "name": "Tenda",
+          "quantity": 1
+        }
+      ],
+      "created_at": "0001-01-01T00:00:00Z",
+      "updated_at": "0001-01-01T00:00:00Z"
+    },
+    "sheet_valerian_de_barovia": {
+      "id": "sheet_valerian_de_barovia",
+      "user_id": "user_valerian_de_barovia",
+      "name": "Valerian de Barovia",
+      "class": "Bard",
+      "subclass": "Espiritos",
+      "level": 3,
+      "race": "Mordida Vampírica",
+      "alignment": "caotico neutro",
+      "xp": 0,
+      "inspiration": false,
+      "proficiency_bonus": 2,
+      "attributes": {
+        "str": {
+          "score": 8,
+          "modifier": -1
+        },
+        "dex": {
+          "score": 14,
+          "modifier": 2
+        },
+        "con": {
+          "score": 14,
+          "modifier": 2
+        },
+        "int": {
+          "score": 10,
+          "modifier": 0
+        },
+        "wis": {
+          "score": 12,
+          "modifier": 1
+        },
+        "cha": {
+          "score": 17,
+          "modifier": 3
+        }
+      },
+      "armor_class": 13,
+      "initiative": 3,
+      "speed": "30 ft (9m)",
+      "max_hp": 24,
+      "current_hp": 24,
+      "temp_hp": 0,
+      "hit_dice": "3d8",
+      "hit_dice_current": 3,
+      "death_saves": {
+        "successes": 0,
+        "failures": 0
+      },
+      "saving_throws": {
+        "cha": {
+          "modifier": 5,
+          "proficient": true
+        },
+        "con": {
+          "modifier": 2,
+          "proficient": false
+        },
+        "dex": {
+          "modifier": 4,
+          "proficient": true
+        },
+        "int": {
+          "modifier": 0,
+          "proficient": false
+        },
+        "str": {
+          "modifier": -1,
+          "proficient": false
+        },
+        "wis": {
+          "modifier": 1,
+          "proficient": false
+        }
+      },
+      "skills": {},
+      "passive_perception": 12,
+      "passive_insight": 10,
+      "passive_investigation": 10,
+      "proficiencies": {
+        "armor": [],
+        "weapons": [],
+        "tools": [
+          "Conjunto de cartas de baralho",
+          "Piano",
+          "lira",
+          "violino 13 3 30 Pontos de Vida Máximo"
+        ],
+        "languages": []
+      },
+      "features": [
+        {
+          "name": "Dhampir",
+          "description": "Mordida Vampírica",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Inspiração Bárdica",
+          "description": "Lançamento de feitiços",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Entertainer",
+          "description": "Conjunto de cartas de baralho",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "proficiencia em Piano",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Spiritual Focus.",
+          "description": "Spirits from Beyond",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "EFEITOS DOS ESPÍRITOS",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Jack of All Trades",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Baralho de Tarô",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "60ft. Escalada de Aranha. Sua Velocidade de Escalada é",
+          "description": "igual à sua Velocidade. Ao atingir o nível 3 do personagem,",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "você pode se mover para cima, para baixo e através de",
+          "description": "superfícies verticais e ao longo de tetos, mantendo as mãos",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "livres. Resistencia a dano necrotico",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Mordida Vampírica",
+          "description": "Quando você usa seu Ataque Desarmado e causa dano,",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "você pode optar por morder com suas presas. Você causa",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "dano Perfurante igual a 1d4 mais seu modificador de",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Constituição em vez do dano normal de um Ataque",
+          "description": "Desarmado. Além disso, quando você causa esse dano a",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "uma criatura que não seja um Constructo ou um Morto-",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Vivo, você pode se fortalecer de uma das seguintes",
+          "description": "maneiras: Drenar. Você recupera Pontos de Vida iguais ao",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "dano Perfurante causado. Fortalecimento. Você recebe um",
+          "description": "bônus no próximo teste de habilidade ou jogada de ataque",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "que fizer dentro do próximo minuto; o bônus é igual ao",
+          "description": "dano perfurante causado. Você pode se fortalecer com essa",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "característica um número de vezes igual ao seu Bônus de",
+          "description": "Proficiência, e recupera todos os usos gastos ao terminar",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "um Descanso Longo.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "palavras, música ou dança. Essa inspiração é representada",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "pelo seu dado de Inspiração Bárdica, um d6. Usando",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Inspiração Bárdica. Como uma Ação Bônus, você pode",
+          "description": "inspirar outra criatura a até 18 metros de você que possa",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "vê-lo ou ouvi-lo. Essa criatura ganha um dos seus dados de",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Inspiração Bárdica. Uma criatura só pode ter um dado de",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Inspiração Bárdica por vez. Uma vez dentro da próxima",
+          "description": "hora, quando a criatura falhar em um Teste de d20, ela",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "pode rolar o dado de Inspiração Bárdica e adicionar o",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "número rolado ao d20, potencialmente transformando a",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "falha em um sucesso. Um dado de Inspiração Bárdica é",
+          "description": "gasto quando rolado. Número de Usos. Você pode conceder",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "um dado de Inspiração Bárdica um número de vezes igual",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "ao seu modificador de Carisma (mínimo de uma vez), e",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "você recupera todos os usos gastos ao terminar um",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Descanso Longo. Em Níveis Superiores. Seu dado de",
+          "description": "Inspiração Bárdica muda quando você atinge certos níveis",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "de Bardo, conforme mostrado na coluna Dado Bárdico da",
+          "description": "tabela de Características de Bardo. O dado se torna um d8",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "no nível 5, um d10 no nível 10 e um d12 no nível 15.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Lançamento de feitiços",
+          "description": "Você aprendeu a conjurar magias através de suas artes",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "bárdicas. Consulte o capítulo 7 para as regras de",
+          "description": "conjuração. As informações abaixo detalham como você",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "usa essas regras com as magias de Bardo, que aparecem na",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "lista de magias de Bardo mais adiante na descrição da",
+          "description": "classe. Truques. Você conhece dois truques à sua escolha",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "da lista de magias de Bardo. Luzes Dançantes e Zombaria",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Viciosa são recomendados. Sempre que você sobe de nível",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "como Bardo, você pode substituir um de seus truques por",
+          "description": "outro truque à sua escolha da lista de magias de Bardo. Ao",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "atingir os níveis 4 e 10 de Bardo, você aprende outro truque",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "à sua escolha da lista de magias de Bardo, conforme",
+          "description": "mostrado na coluna Truques da tabela de Características de",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Bardo. Espaços de Magia. A tabela de Características de",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Bardo mostra quantos espaços de magia você tem para",
+          "description": "conjurar suas magias de nível 1 ou superior. Você recupera",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "todos os espaços gastos ao terminar um Descanso Longo.",
+          "description": "Magias Preparadas de Nível 1 ou Superior. Você prepara a",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "lista de magias de nível 1 ou superior que podem ser",
+          "description": "conjuradas com esta habilidade. Para começar, escolha",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "quatro magias de nível 1 da lista de magias de Bardo.",
+          "description": "Encantar Pessoa, Jato de Cores, Sussurros Dissonantes e",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Palavra de Cura são recomendadas. O número de magias",
+          "description": "em sua lista aumenta conforme você sobe de nível como",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Bardo, conforme mostrado na coluna Magias Preparadas da",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "tabela de Habilidades de Bardo. Sempre que esse número",
+          "description": "aumentar, escolha magias adicionais da lista de magias de",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Bardo até que o número de magias em sua lista",
+          "description": "corresponda ao número na tabela. As magias escolhidas",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "devem ser de um nível para o qual você tenha espaços de",
+          "description": "magia. Por exemplo, se você for um Bardo de nível 3, sua",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "lista de magias preparadas pode incluir seis magias de",
+          "description": "níveis 1 e 2 em qualquer combinação. Se outra habilidade",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "de Bardo lhe conceder magias que você sempre tem",
+          "description": "preparadas, essas magias não contam para o número de",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "magias que você pode preparar com esta habilidade, mas",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "essas magias contam como magias de Bardo para você.",
+          "description": "Alterando suas Magias Preparadas. Sempre que você subir",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "de nível como Bardo, poderá substituir uma magia da sua",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "lista por outra magia de Bardo para a qual você tenha",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "espaços de magia. Habilidade de Conjuração. Carisma é",
+          "description": "sua habilidade de conjuração para suas magias de Bardo.",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Foco de Conjuração. Você pode usar um Instrumento",
+          "description": "Musical como Foco de Conjuração para suas magias de",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Bardo.",
+          "description": "Entertainer",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Canção de Incentivo. Ao terminar um Descanso Curto ou",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Longo, você pode tocar uma canção em um Instrumento",
+          "description": "Musical com o qual você tenha proficiência e conceder",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Inspiração Heroica aos aliados que ouvirem a canção. O",
+          "description": "número de aliados que você pode afetar dessa forma é igual",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "ao seu Bônus de Proficiência.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Conjunto de cartas de baralho",
+          "description": "A proficiência com um conjunto de jogos se aplica a um",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "tipo específico de jogo, como Três Dragões Ante ou jogos",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "de azar que usam dados. Componentes. Um conjunto de",
+          "description": "jogos contém todas as peças necessárias para jogar um jogo",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "específico ou um tipo de jogo, como um baralho completo",
+          "description": "de cartas ou um tabuleiro e fichas. História. Seu domínio de",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "um jogo inclui o conhecimento de sua história, bem como",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "de eventos importantes aos quais ele esteve ligado ou",
+          "description": "figuras históricas proeminentes envolvidas nele. Intuição.",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Jogar com alguém é uma boa maneira de entender sua",
+          "description": "personalidade, concedendo a você uma melhor capacidade",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "de discernir suas mentiras de suas verdades e perceber seu",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "humor. Destreza Manual. Destreza Manual é uma",
+          "description": "habilidade útil para trapacear em um jogo, pois permite",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "trocar peças, esconder cartas ou alterar o resultado de um",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "dado. Alternativamente, envolver um alvo em um jogo",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "manipulando os componentes com movimentos ágeis é",
+          "description": "uma ótima distração para uma tentativa de furto. Conjunto",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "de Jogos Atividade CD: . Pegar um jogador trapaceando 15",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": ". Obter informações sobre a personalidade de um oponente",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "15",
+          "description": "proficiencia em Piano",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Ferramenta (Instrumento Musical). Se você possui",
+          "description": "proficiência com uma ferramenta, adicione seu Bônus de",
+          "source": "Classe/Espécie"
+        },
+        {
+          "name": "Proficiência a qualquer teste de habilidade que você fizer",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "usando a ferramenta. Se você possui proficiência em uma",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "perícia que seja usada com esse teste, você também terá",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "Vantagem no teste.",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "gain a Gaming Set (playing cards). You have proficiency",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "with this Gaming Set, and you can use it or one of the",
+          "description": "",
+          "source": "Geral"
+        },
+        {
+          "name": "following items as a Spellcasting Focus for your Bard",
+          "description": "spells: Arcane Focus (crystal or orb), Candle, or Ink Pen.",
+          "source": "Classe/Espécie"
+        }
+      ],
+      "limited_uses": [
+        {
+          "name": "Inspiração Bardica",
+          "max_uses": 3,
+          "current_uses": 3,
+          "reset_on": "Descanso Longo"
+        }
+      ],
+      "spellcasting": {
+        "ability": "Carisma",
+        "save_dc": 10,
+        "attack_bonus": 14,
+        "slots": {
+          "1": {
+            "level": 1,
+            "max": 4,
+            "used": 0
+          },
+          "2": {
+            "level": 2,
+            "max": 2,
+            "used": 0
+          }
+        },
+        "spells": [
+          {
+            "name": "Vicious Mockery",
+            "level": 0,
+            "prepared": true
+          },
+          {
+            "name": "Frightful Start",
+            "level": 0,
+            "prepared": true
+          },
+          {
+            "name": "Guidance",
+            "level": 0,
+            "prepared": true
+          },
+          {
+            "name": "Charm Person",
+            "level": 1,
+            "prepared": true
+          },
+          {
+            "name": "Silent Image",
+            "level": 1,
+            "prepared": true
+          },
+          {
+            "name": "Faerie Fire",
+            "level": 1,
+            "prepared": true
+          },
+          {
+            "name": "Command",
+            "level": 1,
+            "prepared": true
+          },
+          {
+            "name": "Silvery Barbs",
+            "level": 1,
+            "prepared": true
+          },
+          {
+            "name": "Hold Person",
+            "level": 2,
+            "prepared": true
+          },
+          {
+            "name": "Suggestion",
+            "level": 2,
+            "prepared": true
+          }
+        ]
+      },
+      "attacks": [
+        {
+          "name": "Dagger",
+          "attack_bonus": "+4",
+          "damage": "1d4+2 Piercing"
+        }
+      ],
+      "coins": {
+        "cp": 0,
+        "sp": 0,
+        "ep": 0,
+        "gp": 38,
+        "pp": 0
+      },
+      "inventory": [
+        {
+          "name": "Baralho de cartas",
+          "quantity": 1
+        },
+        {
+          "name": "Entertainer's Pack",
+          "quantity": 1
+        },
+        {
+          "name": "Leather Armor",
+          "quantity": 1
+        },
+        {
+          "name": "Dagger",
+          "quantity": 1
+        },
+        {
+          "name": "Baralho de tarô",
+          "quantity": 1
+        }
+      ],
+      "created_at": "0001-01-01T00:00:00Z",
+      "updated_at": "0001-01-01T00:00:00Z"
+    }
+  },
+  "active_sheets": {
+    "237254274281635840": "sheet_1792707822733823300",
+    "iziely6210": "sheet_1792707822733823300",
+    "user_lyana_hidefeather": "sheet_lyana_hidefeather",
+    "user_tharok_trunk": "sheet_tharok_trunk",
+    "user_valerian_de_barovia": "sheet_valerian_de_barovia"
+  }
+}

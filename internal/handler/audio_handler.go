@@ -34,6 +34,18 @@ func (h *AudioHandler) GetSlashCommands() []*discordgo.ApplicationCommand {
 					Required:     false,
 					Autocomplete: true,
 				},
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "proxima",
+					Description: "⏭️ Tocar a seguir (coloca como a próxima da fila sem parar a atual)",
+					Required:    false,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "transicao",
+					Description: "✨ Transição suave com fade-out da música atual (sem corte seco)",
+					Required:    false,
+				},
 			},
 		},
 		{
@@ -47,6 +59,18 @@ func (h *AudioHandler) GetSlashCommands() []*discordgo.ApplicationCommand {
 					Required:     false,
 					Autocomplete: true,
 				},
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "proxima",
+					Description: "⏭️ Tocar a seguir (coloca como a próxima da fila sem parar a atual)",
+					Required:    false,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "transicao",
+					Description: "✨ Transição suave com fade-out da música atual (sem corte seco)",
+					Required:    false,
+				},
 			},
 		},
 		{
@@ -54,8 +78,37 @@ func (h *AudioHandler) GetSlashCommands() []*discordgo.ApplicationCommand {
 			Description: "📂 Lista e toca as músicas locais da pasta musicas (Baróvia / D&D)",
 		},
 		{
+			Name:        "temas",
+			Description: "🎭 Temas e Trilhas Sonoras de Personagens, Batalhas e Relíquias (Curse of Strahd)",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:         discordgo.ApplicationCommandOptionString,
+					Name:         "busca",
+					Description:  "Nome do personagem, vilão, combate ou relíquia (deixe vazio para abrir o painel)",
+					Required:     false,
+					Autocomplete: true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "proxima",
+					Description: "⏭️ Tocar a seguir (coloca como a próxima da fila sem parar a atual)",
+					Required:    false,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "transicao",
+					Description: "✨ Transição suave com fade-out da música atual (sem corte seco)",
+					Required:    false,
+				},
+			},
+		},
+		{
+			Name:        "ambience",
+			Description: "🏰 Painel de Sons de Ambiente e Cenários de Baróvia (Curse of Strahd)",
+		},
+		{
 			Name:        "ambiente",
-			Description: "🏰 Painel de Trilhas Sonoras e Sons de Ambiente para Mesas de D&D",
+			Description: "🏰 Painel de Sons de Ambiente e Cenários de Baróvia (Curse of Strahd)",
 		},
 		{
 			Name:        "parar",
@@ -64,6 +117,14 @@ func (h *AudioHandler) GetSlashCommands() []*discordgo.ApplicationCommand {
 		{
 			Name:        "pular",
 			Description: "⏭️ Pula para a próxima música da fila",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "suave",
+					Description: "✨ Fazer transição suave (fade-out) em vez de corte imediato",
+					Required:    false,
+				},
+			},
 		},
 		{
 			Name:        "fila",
@@ -130,7 +191,9 @@ func (h *AudioHandler) HandleSlashCommand(s *discordgo.Session, i *discordgo.Int
 		h.handlePlay(s, i)
 	case "musicas":
 		h.handleLocalMusicPanel(s, i)
-	case "ambiente":
+	case "temas", "tema":
+		h.handleTemasPanel(s, i)
+	case "ambiente", "ambience":
 		h.handleAmbientePanel(s, i)
 	case "loop", "repetir":
 		h.handleLoop(s, i)
@@ -143,7 +206,16 @@ func (h *AudioHandler) HandleSlashCommand(s *discordgo.Session, i *discordgo.Int
 			},
 		})
 	case "pular", "skip":
-		skipped, err := h.client.Skip(guildID)
+		suave := false
+		for _, opt := range i.ApplicationCommandData().Options {
+			if opt.Name == "suave" {
+				suave = opt.BoolValue()
+			}
+		}
+		skipped, err := h.client.SkipWithOptions(guildID, audio.SkipOptions{
+			Transition:   suave,
+			FadeDuration: 1500,
+		})
 		if err != nil || !skipped {
 			_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -153,10 +225,14 @@ func (h *AudioHandler) HandleSlashCommand(s *discordgo.Session, i *discordgo.Int
 				},
 			})
 		} else {
+			transText := ""
+			if suave {
+				transText = " *(com transição suave ✨)*"
+			}
 			_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
-					Content: "⏭️ Faixa pulada com sucesso!",
+					Content: fmt.Sprintf("⏭️ Faixa pulada com sucesso%s!", transText),
 				},
 			})
 		}
@@ -175,9 +251,16 @@ func (h *AudioHandler) HandleSlashCommand(s *discordgo.Session, i *discordgo.Int
 
 func (h *AudioHandler) handlePlay(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	query := ""
+	playNext := false
+	transition := false
 	for _, opt := range i.ApplicationCommandData().Options {
-		if opt.Name == "busca" {
+		switch opt.Name {
+		case "busca":
 			query = strings.TrimSpace(opt.StringValue())
+		case "proxima":
+			playNext = opt.BoolValue()
+		case "transicao":
+			transition = opt.BoolValue()
 		}
 	}
 
@@ -205,7 +288,11 @@ func (h *AudioHandler) handlePlay(s *discordgo.Session, i *discordgo.Interaction
 	})
 
 	username := i.Member.User.Username
-	playResp, err := h.client.Play(i.GuildID, voiceChannelID, query, username)
+	playResp, err := h.client.PlayWithOptions(i.GuildID, voiceChannelID, query, username, audio.PlayOptions{
+		PlayNext:     playNext,
+		Transition:   transition,
+		FadeDuration: 1500,
+	})
 	if err != nil {
 		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
 			Content: fmt.Sprintf("❌ Erro ao tocar áudio: %v", err),
@@ -214,10 +301,19 @@ func (h *AudioHandler) handlePlay(s *discordgo.Session, i *discordgo.Interaction
 	}
 
 	switch playResp.Status {
-	case "playing":
+	case "next":
 		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-			Content: fmt.Sprintf("🎶 **Tocando agora:** `%s` (Duração: %s) • *Pedido por: %s*",
-				playResp.Track.Title, playResp.Track.Duration, username),
+			Content: fmt.Sprintf("⏭️ **Definida como a PRÓXIMA música a tocar:** `%s` • *Pedido por: %s*",
+				playResp.Track.Title, username),
+		})
+	case "playing":
+		transText := ""
+		if transition {
+			transText = " *(com transição suave ✨)*"
+		}
+		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+			Content: fmt.Sprintf("🎶 **Tocando agora%s:** `%s` (Duração: %s) • *Pedido por: %s*",
+				transText, playResp.Track.Title, playResp.Track.Duration, username),
 		})
 	case "playlist":
 		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
@@ -260,10 +356,10 @@ func (h *AudioHandler) handleLoop(s *discordgo.Session, i *discordgo.Interaction
 
 	var msg string
 	switch newMode {
-	case "track":
-		msg = "🔂 **Modo Loop Ativado:** A **música atual** será repetida continuamente!\n*Use `/loop modo: Desativar` ou o botão 🔁 para desligar.*"
 	case "queue":
-		msg = "🔁 **Modo Loop Ativado:** A **fila inteira** será repetida continuamente!\n*Use `/loop modo: Desativar` ou o botão 🔁 para desligar.*"
+		msg = "🔁 **Modo Loop Ativado:** A **fila inteira** será repetida continuamente!\n*Músicas adicionadas entram automaticamente no ciclo. Use `/loop modo: Desativar` ou o botão 🔁 para desligar.*"
+	case "track":
+		msg = "🔂 **Modo Loop Ativado:** A **música atual** será repetida continuamente!\n*Músicas adicionadas à fila expandem e integram o ciclo de repetição.*"
 	default:
 		msg = "▶️ **Modo Loop Desativado.** As músicas serão tocadas normalmente uma única vez."
 	}
@@ -404,73 +500,137 @@ func (h *AudioHandler) handleLocalMusicPanel(s *discordgo.Session, i *discordgo.
 }
 
 func (h *AudioHandler) handleAmbientePanel(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	ambienceList := audio.GetCurseOfStrahdAmbienceList()
+	availableTracks := audio.GetAvailableAmbienceTracks()
+
+	var options []discordgo.SelectMenuOption
+	for idx, track := range ambienceList {
+		if idx >= 25 {
+			break
+		}
+		desc := track.Description
+		if len(desc) > 100 {
+			desc = desc[:97] + "..."
+		}
+		label := track.Title
+		if len(label) > 100 {
+			label = label[:97] + "..."
+		}
+		options = append(options, discordgo.SelectMenuOption{
+			Label:       label,
+			Value:       "local:" + track.Filename,
+			Description: desc,
+			Emoji:       &discordgo.ComponentEmoji{Name: track.Emoji},
+		})
+	}
+
 	embed := &discordgo.MessageEmbed{
-		Title:       "🏰 Painel de Áudio Ambiente para Mesas de D&D",
-		Description: "Escolha uma trilha sonora atmosférica contínua para sua sessão de RPG.\n*O bot entrará no seu canal de voz usando criptografia DAVE E2EE e tocará a trilha escolhida.*",
-		Color:       0x4A6FA5,
+		Title:       "🏰 Painel de Áudio Ambiente de Baróvia • Curse of Strahd",
+		Description: "Trilhas sonoras atmosféricas contínuas para cada locação e momento de Baróvia.\n" +
+			"Selecione o cenário no menu suspenso ou clique nos botões rápidos de locais mais frequentes!\n" +
+			"*Ao escolher um cenário, o áudio anterior é interrompido e a nova atmosfera se inicia.*",
+		Color:       0x800020, // Bordô gótico de Baróvia
 		Fields: []*discordgo.MessageEmbedField{
-			{Name: "🍻 Taverna Medieval", Value: "Alaúdes, flautas e o calor de uma taberna acolhedora.", Inline: true},
-			{Name: "⚔️ Combate Épico", Value: "Tambores de guerra e orquestra para batalhas tensas.", Inline: true},
-			{Name: "🕯️ Masmorra & Caverna", Value: "Gotejamento, ecos sombrios e mistério subterrâneo.", Inline: true},
-			{Name: "🌿 Floresta Feérica", Value: "Sons da natureza, harpas místicas e brisa suave.", Inline: true},
+			{
+				Name:   "🌲 Exploração & Regiões",
+				Value:  "• **Svalich Woods** • **Névoas de Ravenloft**\n• **Passo de Tsolenka** • **Ruínas de Berez**",
+				Inline: true,
+			},
+			{
+				Name:   "🏘️ Povoados & Civilização",
+				Value:  "• **Vila de Baróvia** • **Cidade de Vallaki**\n• **Vila de Krezk** • **Mago dos Vinhos**",
+				Inline: true,
+			},
+			{
+				Name:   "🏰 Masmorras & Covis Sombrios",
+				Value:  "• **Castelo Ravenloft** • **Catacumbas**\n• **Casa da Morte & Masmorra** • **Templo de Âmbar**",
+				Inline: true,
+			},
+			{
+				Name:   "⛪ Marcos & Encontros Notáveis",
+				Value:  "• **Velho Moedor de Ossos** • **Argynvostholt**\n• **Abadia de Santa Markovia** • **Torre de Van Richten**",
+				Inline: false,
+			},
 		},
 		Footer: &discordgo.MessageEmbedFooter{
-			Text: "D&D 2024 Soundboard • Clique abaixo para tocar",
+			Text: fmt.Sprintf("Curse of Strahd Ambience • %d/%d faixas locais prontas • Kenobi Bot", len(availableTracks), len(ambienceList)),
 		},
 	}
 
-	components := []discordgo.MessageComponent{
-		discordgo.ActionsRow{
+	var components []discordgo.MessageComponent
+
+	// 1. Menu Dropdown com todos os 18 cenários de Baróvia
+	if len(options) > 0 {
+		components = append(components, discordgo.ActionsRow{
 			Components: []discordgo.MessageComponent{
-				discordgo.Button{
-					Label:    "Taverna",
-					Style:    discordgo.PrimaryButton,
-					CustomID: "audio:preset:taverna",
-					Emoji:    &discordgo.ComponentEmoji{Name: "🍻"},
-				},
-				discordgo.Button{
-					Label:    "Combate",
-					Style:    discordgo.DangerButton,
-					CustomID: "audio:preset:combate",
-					Emoji:    &discordgo.ComponentEmoji{Name: "⚔️"},
-				},
-				discordgo.Button{
-					Label:    "Masmorra",
-					Style:    discordgo.SecondaryButton,
-					CustomID: "audio:preset:masmorra",
-					Emoji:    &discordgo.ComponentEmoji{Name: "🕯️"},
-				},
-				discordgo.Button{
-					Label:    "Floresta",
-					Style:    discordgo.SuccessButton,
-					CustomID: "audio:preset:floresta",
-					Emoji:    &discordgo.ComponentEmoji{Name: "🌿"},
+				discordgo.SelectMenu{
+					CustomID:    "audio:select_ambience",
+					Placeholder: "🏰 Selecione o cenário de Baróvia para tocar...",
+					Options:     options,
 				},
 			},
-		},
-		discordgo.ActionsRow{
-			Components: []discordgo.MessageComponent{
-				discordgo.Button{
-					Label:    "Repetir (Loop)",
-					Style:    discordgo.SecondaryButton,
-					CustomID: "audio:action:loop",
-					Emoji:    &discordgo.ComponentEmoji{Name: "🔁"},
-				},
-				discordgo.Button{
-					Label:    "Parar Áudio",
-					Style:    discordgo.SecondaryButton,
-					CustomID: "audio:action:stop",
-					Emoji:    &discordgo.ComponentEmoji{Name: "⏹️"},
-				},
-				discordgo.Button{
-					Label:    "Desconectar",
-					Style:    discordgo.SecondaryButton,
-					CustomID: "audio:action:leave",
-					Emoji:    &discordgo.ComponentEmoji{Name: "👋"},
-				},
-			},
-		},
+		})
 	}
+
+	// 2. Botões Rápidos dos locais mais icônicos
+	components = append(components, discordgo.ActionsRow{
+		Components: []discordgo.MessageComponent{
+			discordgo.Button{
+				Label:    "Svalich Woods",
+				Style:    discordgo.SuccessButton,
+				CustomID: "audio:ambience:CoS - Svalich Woods.mp3",
+				Emoji:    &discordgo.ComponentEmoji{Name: "🌲"},
+			},
+			discordgo.Button{
+				Label:    "Vila de Baróvia",
+				Style:    discordgo.PrimaryButton,
+				CustomID: "audio:ambience:CoS - Village of Barovia.mp3",
+				Emoji:    &discordgo.ComponentEmoji{Name: "🏚️"},
+			},
+			discordgo.Button{
+				Label:    "Vallaki",
+				Style:    discordgo.PrimaryButton,
+				CustomID: "audio:ambience:CoS - Town Of Vallaki.mp3",
+				Emoji:    &discordgo.ComponentEmoji{Name: "🏘️"},
+			},
+			discordgo.Button{
+				Label:    "Castelo Ravenloft",
+				Style:    discordgo.DangerButton,
+				CustomID: "audio:ambience:CoS - Castle Ravenloft.mp3",
+				Emoji:    &discordgo.ComponentEmoji{Name: "🏰"},
+			},
+			discordgo.Button{
+				Label:    "Névoas",
+				Style:    discordgo.SecondaryButton,
+				CustomID: "audio:ambience:CoS - Mists of Ravenloft.mp3",
+				Emoji:    &discordgo.ComponentEmoji{Name: "🌫️"},
+			},
+		},
+	})
+
+	// 3. Controles de Reprodução (Loop, Parar, Desconectar)
+	components = append(components, discordgo.ActionsRow{
+		Components: []discordgo.MessageComponent{
+			discordgo.Button{
+				Label:    "Repetir (Loop)",
+				Style:    discordgo.SecondaryButton,
+				CustomID: "audio:action:loop",
+				Emoji:    &discordgo.ComponentEmoji{Name: "🔁"},
+			},
+			discordgo.Button{
+				Label:    "Parar Áudio",
+				Style:    discordgo.SecondaryButton,
+				CustomID: "audio:action:stop",
+				Emoji:    &discordgo.ComponentEmoji{Name: "⏹️"},
+			},
+			discordgo.Button{
+				Label:    "Desconectar",
+				Style:    discordgo.SecondaryButton,
+				CustomID: "audio:action:leave",
+				Emoji:    &discordgo.ComponentEmoji{Name: "👋"},
+			},
+		},
+	})
 
 	_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -481,10 +641,403 @@ func (h *AudioHandler) handleAmbientePanel(s *discordgo.Session, i *discordgo.In
 	})
 }
 
-// HandleComponentInteraction gerencia cliques no painel de ambiente
+// handleTemasPanel processa o comando /temas (busca direta ou painel de seleção)
+func (h *AudioHandler) handleTemasPanel(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	query := ""
+	playNext := false
+	transition := false
+	for _, opt := range i.ApplicationCommandData().Options {
+		switch opt.Name {
+		case "busca":
+			query = strings.TrimSpace(opt.StringValue())
+		case "proxima":
+			playNext = opt.BoolValue()
+		case "transicao":
+			transition = opt.BoolValue()
+		}
+	}
+
+	if query != "" {
+		track, found := audio.FindThemeTrack(query)
+		if !found {
+			_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: fmt.Sprintf("⚠️ Não encontrei nenhum tema correspondente a `%s`.\n💡 Use `/temas` sem opções para abrir o painel completo com todos os 94 temas de Baróvia!", query),
+					Flags:   discordgo.MessageFlagsEphemeral,
+				},
+			})
+			return
+		}
+
+		voiceChannelID := h.findUserVoiceChannel(s, i.GuildID, i.Member.User.ID)
+		if voiceChannelID == "" {
+			_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "❌ Você precisa estar conectado a um canal de voz para tocar um tema!",
+					Flags:   discordgo.MessageFlagsEphemeral,
+				},
+			})
+			return
+		}
+
+		_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+		})
+
+		target := "local:" + track.Filename
+		if !track.IsAvailable && track.YouTubeURL != "" {
+			target = track.YouTubeURL
+		}
+
+		username := i.Member.User.Username
+		playResp, err := h.client.PlayWithOptions(i.GuildID, voiceChannelID, target, username, audio.PlayOptions{
+			PlayNext:     playNext,
+			Transition:   transition,
+			FadeDuration: 1500,
+		})
+		if err != nil {
+			_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+				Content: fmt.Sprintf("❌ Erro ao tocar tema de Baróvia: %v", err),
+			})
+			return
+		}
+
+		switch playResp.Status {
+		case "next":
+			_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+				Content: fmt.Sprintf("⏭️ **Definido como PRÓXIMO tema a tocar:** `%s` • *Pedido por: %s*",
+					playResp.Track.Title, username),
+			})
+		case "playing":
+			transText := ""
+			if transition {
+				transText = " *(com transição suave ✨)*"
+			}
+			_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+				Content: fmt.Sprintf("🎭 **Tema de Baróvia Iniciado%s:** `%s` (Duração: %s)\n🔊 *Trilha sonora iniciada por %s!*",
+					transText, playResp.Track.Title, playResp.Track.Duration, username),
+			})
+		default:
+			_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+				Content: fmt.Sprintf("➕ **Tema Adicionado à Fila (#%d):** `%s` (Duração: %s)\n🔁 *Integrado à lista de reprodução e ao loop por %s!*",
+					playResp.Position, playResp.Track.Title, playResp.Track.Duration, username),
+			})
+		}
+		return
+	}
+
+	embed, components := h.renderTemasPanelData("todos")
+	_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Embeds:     []*discordgo.MessageEmbed{embed},
+			Components: components,
+		},
+	})
+}
+
+// renderTemasPanelData monta o embed e componentes interativos do painel de temas
+func (h *AudioHandler) renderTemasPanelData(selectedCategory string) (*discordgo.MessageEmbed, []discordgo.MessageComponent) {
+	allTracks := audio.GetThemeTracks()
+	categories := audio.GetThemeCategories()
+
+	var displayTracks []audio.ThemeTrack
+	if selectedCategory != "" && selectedCategory != "todos" {
+		displayTracks = audio.GetThemeTracksByCategory(selectedCategory)
+	} else {
+		displayTracks = allTracks
+	}
+	if len(displayTracks) > 25 {
+		displayTracks = displayTracks[:25]
+	}
+
+	var menuOptions []discordgo.SelectMenuOption
+	for _, track := range displayTracks {
+		desc := fmt.Sprintf("%s • %s", track.Category, track.Duration)
+		if len(desc) > 100 {
+			desc = desc[:97] + "..."
+		}
+		lbl := track.Title
+		if len(lbl) > 100 {
+			lbl = lbl[:97] + "..."
+		}
+		val := "local:" + track.Filename
+		if !track.IsAvailable && track.YouTubeURL != "" {
+			val = track.YouTubeURL
+		}
+		menuOptions = append(menuOptions, discordgo.SelectMenuOption{
+			Label:       lbl,
+			Value:       val,
+			Description: desc,
+			Emoji:       &discordgo.ComponentEmoji{Name: track.Emoji},
+		})
+	}
+
+	var catOptions []discordgo.SelectMenuOption
+	catOptions = append(catOptions, discordgo.SelectMenuOption{
+		Label:       "🎭 Todos os Temas (Destaques)",
+		Value:       "todos",
+		Description: "Exibir temas e trilhas principais de Baróvia",
+		Emoji:       &discordgo.ComponentEmoji{Name: "🎭"},
+		Default:     selectedCategory == "" || selectedCategory == "todos",
+	})
+	for _, cat := range categories {
+		isDef := strings.EqualFold(cat, selectedCategory)
+		catOptions = append(catOptions, discordgo.SelectMenuOption{
+			Label:       cat,
+			Value:       cat,
+			Description: fmt.Sprintf("Filtrar faixas de %s", cat),
+			Default:     isDef,
+		})
+	}
+
+	embed := &discordgo.MessageEmbed{
+		Title:       "🎭 Painel de Temas e Trilhas Sonoras • Curse of Strahd",
+		Description: "Trilhas sonoras completas de personagens, encontros dramáticos, combates e relíquias de Baróvia.\n" +
+			"Selecione uma faixa no menu suspenso ou nos botões rápidos para tocar ou adicionar à fila!\n" +
+			"*Músicas adicionadas à fila integram automaticamente o ciclo de Loop ativo.*",
+		Color:       0x800020, // Bordô gótico
+		Fields: []*discordgo.MessageEmbedField{
+			{
+				Name:   "👑 Personagens & NPCs",
+				Value:  "• Strahd von Zarovich • Ireena Kolyana\n• Ismark • Rahadin • Noivas • Van Richten",
+				Inline: true,
+			},
+			{
+				Name:   "⚔️ Combates & Batalhas",
+				Value:  "• Batalha Strahd • Encontro no Pântano\n• Casa da Morte • Bruxas • Deva",
+				Inline: true,
+			},
+			{
+				Name:   "✨ Relíquias & Destino",
+				Value:  "• Espada Solar • Símbolo Sagrado\n• Leitura de Tarokka • Tomo de Strahd",
+				Inline: true,
+			},
+		},
+		Footer: &discordgo.MessageEmbedFooter{
+			Text: fmt.Sprintf("Kenobi Bot • %d temas catalogados de Curse of Strahd", len(allTracks)),
+		},
+	}
+
+	var components []discordgo.MessageComponent
+
+	// 1. Menu de faixas da categoria selecionada
+	components = append(components, discordgo.ActionsRow{
+		Components: []discordgo.MessageComponent{
+			discordgo.SelectMenu{
+				CustomID:    "audio:theme:select",
+				Placeholder: fmt.Sprintf("🎵 Escolha um tema (%d faixas listadas)...", len(displayTracks)),
+				Options:     menuOptions,
+			},
+		},
+	})
+
+	// 2. Menu seletor de categoria
+	components = append(components, discordgo.ActionsRow{
+		Components: []discordgo.MessageComponent{
+			discordgo.SelectMenu{
+				CustomID:    "audio:theme:category",
+				Placeholder: "📂 Filtrar temas por Categoria...",
+				Options:     catOptions,
+			},
+		},
+	})
+
+	// 3. Botões Rápidos
+	components = append(components, discordgo.ActionsRow{
+		Components: []discordgo.MessageComponent{
+			discordgo.Button{
+				Label:    "Strahd von Zarovich",
+				Style:    discordgo.DangerButton,
+				CustomID: "audio:theme:quick:CoS - Strahd von Zarovich.mp3",
+				Emoji:    &discordgo.ComponentEmoji{Name: "🩸"},
+			},
+			discordgo.Button{
+				Label:    "Batalha: Strahd",
+				Style:    discordgo.DangerButton,
+				CustomID: "audio:theme:quick:CoS - Strahd Battle Theme.mp3",
+				Emoji:    &discordgo.ComponentEmoji{Name: "⚔️"},
+			},
+			discordgo.Button{
+				Label:    "Ireena Kolyana",
+				Style:    discordgo.PrimaryButton,
+				CustomID: "audio:theme:quick:CoS - Ireena Kolyana Theme.mp3",
+				Emoji:    &discordgo.ComponentEmoji{Name: "👑"},
+			},
+			discordgo.Button{
+				Label:    "Espada Solar",
+				Style:    discordgo.SuccessButton,
+				CustomID: "audio:theme:quick:CoS - Sunsword.mp3",
+				Emoji:    &discordgo.ComponentEmoji{Name: "✨"},
+			},
+		},
+	})
+
+	// 4. Controles (Loop, Pular, Parar, Fila, Sair)
+	components = append(components, discordgo.ActionsRow{
+		Components: []discordgo.MessageComponent{
+			discordgo.Button{
+				Label:    "Loop",
+				Style:    discordgo.SecondaryButton,
+				CustomID: "audio:action:loop",
+				Emoji:    &discordgo.ComponentEmoji{Name: "🔁"},
+			},
+			discordgo.Button{
+				Label:    "Pular",
+				Style:    discordgo.SecondaryButton,
+				CustomID: "audio:action:skip",
+				Emoji:    &discordgo.ComponentEmoji{Name: "⏭️"},
+			},
+			discordgo.Button{
+				Label:    "Parar",
+				Style:    discordgo.SecondaryButton,
+				CustomID: "audio:action:stop",
+				Emoji:    &discordgo.ComponentEmoji{Name: "⏹️"},
+			},
+			discordgo.Button{
+				Label:    "Fila",
+				Style:    discordgo.SecondaryButton,
+				CustomID: "audio:action:queue",
+				Emoji:    &discordgo.ComponentEmoji{Name: "📜"},
+			},
+			discordgo.Button{
+				Label:    "Sair",
+				Style:    discordgo.SecondaryButton,
+				CustomID: "audio:action:leave",
+				Emoji:    &discordgo.ComponentEmoji{Name: "👋"},
+			},
+		},
+	})
+
+	return embed, components
+}
+
+// HandleComponentInteraction gerencia cliques no painel de ambiente e temas
 func (h *AudioHandler) HandleComponentInteraction(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	customID := i.MessageComponentData().CustomID
 	guildID := i.GuildID
+
+	// Interações do Painel de Temas
+	if customID == "audio:theme:select" || strings.HasPrefix(customID, "audio:theme:quick:") {
+		var targetTrack string
+		if customID == "audio:theme:select" {
+			values := i.MessageComponentData().Values
+			if len(values) == 0 {
+				return
+			}
+			targetTrack = values[0]
+		} else {
+			filename := strings.TrimPrefix(customID, "audio:theme:quick:")
+			targetTrack = "local:" + filename
+		}
+
+		voiceChannelID := h.findUserVoiceChannel(s, guildID, i.Member.User.ID)
+		if voiceChannelID == "" {
+			_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "❌ Conecte-se a um canal de voz primeiro para tocar o tema!",
+					Flags:   discordgo.MessageFlagsEphemeral,
+				},
+			})
+			return
+		}
+
+		_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+		})
+
+		playResp, err := h.client.Play(guildID, voiceChannelID, targetTrack, i.Member.User.Username)
+		if err != nil {
+			_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+				Content: fmt.Sprintf("❌ Erro ao iniciar tema: %v", err),
+			})
+			return
+		}
+
+		if playResp.Status == "playing" {
+			_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+				Content: fmt.Sprintf("🎭 **Tema de Baróvia Iniciado:** `%s`\n🔊 *Trilha temática iniciada por %s!*",
+					playResp.Track.Title, i.Member.User.Username),
+			})
+		} else {
+			_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+				Content: fmt.Sprintf("➕ **Tema Adicionado à Fila (#%d):** `%s`\n🔁 *Integrado ao loop de reprodução por %s!*",
+					playResp.Position, playResp.Track.Title, i.Member.User.Username),
+			})
+		}
+		return
+	}
+
+	if customID == "audio:theme:category" {
+		values := i.MessageComponentData().Values
+		selectedCat := "todos"
+		if len(values) > 0 {
+			selectedCat = values[0]
+		}
+		embed, components := h.renderTemasPanelData(selectedCat)
+		_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseUpdateMessage,
+			Data: &discordgo.InteractionResponseData{
+				Embeds:     []*discordgo.MessageEmbed{embed},
+				Components: components,
+			},
+		})
+		return
+	}
+
+	if customID == "audio:select_ambience" || strings.HasPrefix(customID, "audio:ambience:") {
+		var targetTrack string
+		if customID == "audio:select_ambience" {
+			values := i.MessageComponentData().Values
+			if len(values) == 0 {
+				return
+			}
+			targetTrack = values[0]
+		} else {
+			filename := strings.TrimPrefix(customID, "audio:ambience:")
+			targetTrack = "local:" + filename
+		}
+
+		voiceChannelID := h.findUserVoiceChannel(s, guildID, i.Member.User.ID)
+		if voiceChannelID == "" {
+			_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "❌ Conecte-se a um canal de voz primeiro para tocar o áudio ambiente!",
+					Flags:   discordgo.MessageFlagsEphemeral,
+				},
+			})
+			return
+		}
+
+		_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+		})
+
+		playResp, err := h.client.Play(guildID, voiceChannelID, targetTrack, i.Member.User.Username)
+		if err != nil {
+			_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+				Content: fmt.Sprintf("❌ Erro ao iniciar ambiente de Baróvia: %v", err),
+			})
+			return
+		}
+
+		if playResp.Status == "playing" {
+			_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+				Content: fmt.Sprintf("🏰 **Entrando no Cenário:** `%s`\n🔊 *Música ambiente de Baróvia iniciada por %s!*",
+					playResp.Track.Title, i.Member.User.Username),
+			})
+		} else {
+			_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+				Content: fmt.Sprintf("➕ **Ambiente Adicionado à Fila (#%d):** `%s`\n🔁 *Integrado ao loop de reprodução por %s!*",
+					playResp.Position, playResp.Track.Title, i.Member.User.Username),
+			})
+		}
+		return
+	}
 
 	if strings.HasPrefix(customID, "audio:preset:") {
 		presetKey := strings.TrimPrefix(customID, "audio:preset:")
@@ -504,7 +1057,6 @@ func (h *AudioHandler) HandleComponentInteraction(s *discordgo.Session, i *disco
 			Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 		})
 
-		_ = h.client.Stop(guildID)
 		playResp, err := h.client.Play(guildID, voiceChannelID, presetKey, i.Member.User.Username)
 		if err != nil {
 			_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
@@ -513,9 +1065,16 @@ func (h *AudioHandler) HandleComponentInteraction(s *discordgo.Session, i *disco
 			return
 		}
 
-		_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-			Content: fmt.Sprintf("🏰 **Iniciando Trilha de D&D:** `%s`", playResp.Track.Title),
-		})
+		if playResp.Status == "playing" {
+			_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+				Content: fmt.Sprintf("🏰 **Iniciando Trilha de D&D:** `%s`", playResp.Track.Title),
+			})
+		} else {
+			_, _ = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+				Content: fmt.Sprintf("➕ **Trilha Adicionada à Fila (#%d):** `%s`\n🔁 *Integrada ao loop de reprodução!*",
+					playResp.Position, playResp.Track.Title),
+			})
+		}
 		return
 	}
 
@@ -655,10 +1214,10 @@ func (h *AudioHandler) HandleComponentInteraction(s *discordgo.Session, i *disco
 
 		var msg string
 		switch newMode {
-		case "track":
-			msg = "🔂 **Repetição da Música Atual ATIVADA!** (Loop)"
 		case "queue":
-			msg = "🔁 **Repetição da Fila ATIVADA!** (Loop)"
+			msg = "🔁 **Repetição da Fila ATIVADA!** (Loop de todas as faixas adicionadas)"
+		case "track":
+			msg = "🔂 **Repetição da Música Atual ATIVADA!** (Loop da faixa atual)"
 		default:
 			msg = "▶️ **Repetição DESATIVADA.**"
 		}
@@ -685,7 +1244,7 @@ func (h *AudioHandler) HandleComponentInteraction(s *discordgo.Session, i *disco
 	}
 }
 
-// HandleAutocomplete processa sugestões em tempo real para os comandos /play e /tocar
+// HandleAutocomplete processa sugestões em tempo real para os comandos /play, /tocar e /temas
 func (h *AudioHandler) HandleAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
 	var currentQuery string
@@ -698,6 +1257,34 @@ func (h *AudioHandler) HandleAutocomplete(s *discordgo.Session, i *discordgo.Int
 
 	lowerQuery := strings.ToLower(currentQuery)
 	var choices []*discordgo.ApplicationCommandOptionChoice
+
+	// Se for comando /temas, sugere exclusivamente faixas temáticas de Curse of Strahd
+	if data.Name == "temas" || data.Name == "tema" {
+		themeTracks := audio.GetThemeTracks()
+		for _, track := range themeTracks {
+			if lowerQuery == "" ||
+				strings.Contains(strings.ToLower(track.Title), lowerQuery) ||
+				strings.Contains(strings.ToLower(track.Category), lowerQuery) ||
+				strings.Contains(strings.ToLower(track.Key), lowerQuery) ||
+				strings.Contains(strings.ToLower(track.Filename), lowerQuery) {
+				choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
+					Name:  fmt.Sprintf("%s %s (%s)", track.Emoji, track.Title, track.Category),
+					Value: track.Filename,
+				})
+			}
+			if len(choices) >= 25 {
+				break
+			}
+		}
+
+		_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionApplicationCommandAutocompleteResult,
+			Data: &discordgo.InteractionResponseData{
+				Choices: choices,
+			},
+		})
+		return
+	}
 
 	// 1. Sugerir faixas locais da pasta musicas
 	localTracks := audio.ScanLocalMusic()
@@ -728,8 +1315,26 @@ func (h *AudioHandler) HandleAutocomplete(s *discordgo.Session, i *discordgo.Int
 				Value: p.Key,
 			})
 		}
-		if len(choices) >= 25 {
+		if len(choices) >= 20 {
 			break
+		}
+	}
+
+	// 3. Sugerir Temas de Curse of Strahd se ainda couber
+	if len(choices) < 25 {
+		themeTracks := audio.GetThemeTracks()
+		for _, track := range themeTracks {
+			if lowerQuery != "" &&
+				(strings.Contains(strings.ToLower(track.Title), lowerQuery) ||
+					strings.Contains(strings.ToLower(track.Filename), lowerQuery)) {
+				choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
+					Name:  fmt.Sprintf("%s %s (Tema CoS)", track.Emoji, track.Title),
+					Value: "local:" + track.Filename,
+				})
+			}
+			if len(choices) >= 25 {
+				break
+			}
 		}
 	}
 

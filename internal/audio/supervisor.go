@@ -72,7 +72,7 @@ func (s *Supervisor) watchdogLoop() {
 	defer ticker.Stop()
 
 	// Aguardar inicialização inicial do Node.js e conexão ao Discord
-	time.Sleep(8 * time.Second)
+	time.Sleep(15 * time.Second)
 
 	consecutiveFailures := 0
 
@@ -96,7 +96,7 @@ func (s *Supervisor) watchdogLoop() {
 					"consecutive_failures", consecutiveFailures,
 				)
 
-				if consecutiveFailures >= 5 {
+				if consecutiveFailures >= 8 {
 					slog.Error("Audio Bridge inativo após múltiplas tentativas. Reiniciando processo...")
 					s.restartProcess()
 					consecutiveFailures = 0

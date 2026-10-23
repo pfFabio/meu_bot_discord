@@ -15,11 +15,14 @@ type Config struct {
 	BotToken string
 }
 
-// Load carrega as variáveis de ambiente do arquivo .env (se existir)
-// e retorna uma instância validada de Config ou erro se não configurada.
+// Load carrega as variáveis de ambiente do arquivo .env padrão
 func Load() (*Config, error) {
-	// Tenta carregar o .env; ignora erro se não existir (ex: em produção usa vars de ambiente direto)
-	_ = godotenv.Load()
+	return LoadFrom(".env")
+}
+
+// LoadFrom carrega as variáveis de ambiente a partir de caminhos específicos
+func LoadFrom(filenames ...string) (*Config, error) {
+	_ = godotenv.Load(filenames...)
 
 	token := os.Getenv("DISCORD_TOKEN")
 	if token == "" {

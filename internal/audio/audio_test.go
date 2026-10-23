@@ -68,6 +68,10 @@ func TestBridgeClient(t *testing.T) {
 			_ = json.NewEncoder(w).Encode(audio.QueueResponse{
 				IsPlaying: true,
 			})
+		case "/queue/promote":
+			_ = json.NewEncoder(w).Encode(map[string]string{"status": "promoted"})
+		case "/queue/jump":
+			_ = json.NewEncoder(w).Encode(map[string]string{"status": "jumped"})
 		default:
 			http.NotFound(w, r)
 		}
@@ -95,16 +99,47 @@ func TestBridgeClient(t *testing.T) {
 		}
 	})
 
+	t.Run("PlayWithOptions com transição e tocar a seguir", func(t *testing.T) {
+		resp, err := client.PlayWithOptions("guild123", "voice123", "batalha", "Mestre", audio.PlayOptions{
+			PlayNext:     true,
+			Transition:   true,
+			FadeDuration: 2000,
+		})
+		if err != nil {
+			t.Fatalf("Erro ao chamar PlayWithOptions: %v", err)
+		}
+		if resp.Status != "playing" {
+			t.Errorf("resp.Status = %q, esperado 'playing'", resp.Status)
+		}
+	})
+
 	t.Run("Stop limpa reprodução", func(t *testing.T) {
 		if err := client.Stop("guild123"); err != nil {
 			t.Errorf("Stop() retornou erro: %v", err)
 		}
 	})
 
-	t.Run("Skip pula faixa", func(t *testing.T) {
+	t.Run("Skip pula faixa com e sem transição", func(t *testing.T) {
 		skipped, err := client.Skip("guild123")
 		if err != nil || !skipped {
 			t.Errorf("Skip() retornou (%v, %v), esperado (true, nil)", skipped, err)
+		}
+
+		skippedTrans, err := client.SkipWithOptions("guild123", audio.SkipOptions{Transition: true, FadeDuration: 1500})
+		if err != nil || !skippedTrans {
+			t.Errorf("SkipWithOptions() retornou (%v, %v), esperado (true, nil)", skippedTrans, err)
+		}
+	})
+
+	t.Run("PromoteQueue promove faixa na fila", func(t *testing.T) {
+		if err := client.PromoteQueue("guild123", 2); err != nil {
+			t.Errorf("PromoteQueue() retornou erro: %v", err)
+		}
+	})
+
+	t.Run("JumpQueue salta para faixa na fila", func(t *testing.T) {
+		if err := client.JumpQueue("guild123", 1, true, 1800); err != nil {
+			t.Errorf("JumpQueue() retornou erro: %v", err)
 		}
 	})
 

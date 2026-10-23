@@ -47,5 +47,13 @@ __pycache__/
 /musicas/
 /jogadores/
 
+# Áudios de ambiente e temas (mídia pesada >7GB, baixada via scripts Python)
+/ambiente/*.mp3
+/ambiente/*.m4a
+/ambiente/*.wav
+/temas/*.mp3
+/temas/*.m4a
+/temas/*.wav
+
 # Web PDF Reader (diretório auxiliar)
 /web-pdf-reader/

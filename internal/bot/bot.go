@@ -18,6 +18,7 @@ type Bot struct {
 	diceHandler      *handler.DiceHandler
 	audioHandler     *handler.AudioHandler
 	recordingHandler *handler.RecordingHandler
+	characterHandler *handler.CharacterHandler
 	createdCommands  []*discordgo.ApplicationCommand
 }
 
@@ -28,6 +29,7 @@ func New(
 	diceHandler *handler.DiceHandler,
 	audioHandler *handler.AudioHandler,
 	recordingHandler *handler.RecordingHandler,
+	characterHandler *handler.CharacterHandler,
 ) (*Bot, error) {
 	session, err := discordgo.New("Bot " + token)
 	if err != nil {
@@ -46,7 +48,13 @@ func New(
 		diceHandler:      diceHandler,
 		audioHandler:     audioHandler,
 		recordingHandler: recordingHandler,
+		characterHandler: characterHandler,
 	}, nil
+}
+
+// Session retorna a sessão do DiscordGo subjacente
+func (b *Bot) Session() *discordgo.Session {
+	return b.session
 }
 
 // AddMessageHandler registra um MessageHandler na cadeia de processamento
@@ -105,6 +113,88 @@ func (b *Bot) registerSlashCommands() {
 		Description: "🍀 Ativa/Desativa Rerrolagem Automática de 1s (Sorte Halfling / GWF)",
 	})
 
+	// Adicionar comando /sus (Rolagem com contagem de sucessos e falhas)
+	commands = append(commands, &discordgo.ApplicationCommand{
+		Name:        "sus",
+		Description: "🎯 Rola dados e contabiliza sucessos e falhas (ex: 4d6+5d20+2d10 ou 6d10)",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "dados",
+				Description: "Dados separados por + (ex: 4d6+5d20+2d10, 6d10 ou apenas 6)",
+				Required:    true,
+			},
+			{
+				Type:        discordgo.ApplicationCommandOptionInteger,
+				Name:        "alvo",
+				Description: "Valor mínimo para sucesso nesta rolagem (opcional; padrão usa o salvo no /limsus)",
+				Required:    false,
+			},
+		},
+	})
+
+	// Adicionar comando /sucs (Alias de /sus)
+	commands = append(commands, &discordgo.ApplicationCommand{
+		Name:        "sucs",
+		Description: "🎯 (Alias de /sus) Rola dados e contabiliza sucessos e falhas",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "dados",
+				Description: "Dados separados por + (ex: 4d6+5d20+2d10, 6d10 ou 6)",
+				Required:    true,
+			},
+			{
+				Type:        discordgo.ApplicationCommandOptionInteger,
+				Name:        "alvo",
+				Description: "Valor mínimo para sucesso nesta rolagem (opcional)",
+				Required:    false,
+			},
+		},
+	})
+
+	// Adicionar comando /limsus (Configuração de limite de sucesso)
+	commands = append(commands, &discordgo.ApplicationCommand{
+		Name:        "limsus",
+		Description: "⚙️ Define ou consulta o valor mínimo no dado para contar sucesso (ex: 5 para ≥ 5)",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Type:        discordgo.ApplicationCommandOptionInteger,
+				Name:        "valor",
+				Description: "Valor mínimo a ser batido no dado para ser um sucesso (ex: 5 para ≥ 5)",
+				Required:    false,
+			},
+		},
+	})
+
+	// Adicionar comando /limsucs (Alias de /limsus)
+	commands = append(commands, &discordgo.ApplicationCommand{
+		Name:        "limsucs",
+		Description: "⚙️ (Alias de /limsus) Define ou consulta o valor mínimo para sucesso",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Type:        discordgo.ApplicationCommandOptionInteger,
+				Name:        "valor",
+				Description: "Valor mínimo a ser batido no dado para ser um sucesso (ex: 5 para ≥ 5)",
+				Required:    false,
+			},
+		},
+	})
+
+	// Adicionar comando /limitesus (Alias de /limsus)
+	commands = append(commands, &discordgo.ApplicationCommand{
+		Name:        "limitesus",
+		Description: "⚙️ (Alias) Define ou consulta o valor mínimo no dado para contar sucesso",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Type:        discordgo.ApplicationCommandOptionInteger,
+				Name:        "valor",
+				Description: "Valor mínimo a ser batido no dado para ser um sucesso (ex: 5 para ≥ 5)",
+				Required:    false,
+			},
+		},
+	})
+
 	// Adicionar comandos de áudio
 	if b.audioHandler != nil {
 		commands = append(commands, b.audioHandler.GetSlashCommands()...)
@@ -113,6 +203,11 @@ func (b *Bot) registerSlashCommands() {
 	// Adicionar comandos de gravação de sessão
 	if b.recordingHandler != nil {
 		commands = append(commands, b.recordingHandler.GetSlashCommands()...)
+	}
+
+	// Adicionar comandos do Sistema de Fichas de Personagens D&D
+	if b.characterHandler != nil {
+		commands = append(commands, b.characterHandler.GetSlashCommands()...)
 	}
 
 	slog.Info("Registrando Slash Commands...", "total", len(commands))
@@ -157,12 +252,14 @@ func (b *Bot) onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) 
 	}
 }
 
-// onInteractionCreate despacha Slash Commands e Component Interactions (Menus/Botões)
+// onInteractionCreate despacha Slash Commands, Component Interactions (Menus/Botões) e Modais
 func (b *Bot) onInteractionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:
 		cmdName := i.ApplicationCommandData().Name
-		if cmdName == "rolar" || cmdName == "roll" || cmdName == "sorte" || cmdName == "dados_config" {
+		if cmdName == "rolar" || cmdName == "roll" || cmdName == "sorte" || cmdName == "dados_config" ||
+			cmdName == "sus" || cmdName == "sucs" || cmdName == "limsus" || cmdName == "limsucs" ||
+			cmdName == "limitesus" || cmdName == "limitesucs" {
 			if b.diceHandler != nil {
 				b.diceHandler.HandleSlashCommand(s, i)
 			}
@@ -170,7 +267,8 @@ func (b *Bot) onInteractionCreate(s *discordgo.Session, i *discordgo.Interaction
 		}
 		if cmdName == "play" || cmdName == "tocar" || cmdName == "parar" || cmdName == "stop" ||
 			cmdName == "pular" || cmdName == "skip" || cmdName == "fila" || cmdName == "queue" ||
-			cmdName == "sair" || cmdName == "leave" || cmdName == "ambiente" || cmdName == "musicas" {
+			cmdName == "sair" || cmdName == "leave" || cmdName == "ambiente" || cmdName == "ambience" ||
+			cmdName == "musicas" || cmdName == "temas" || cmdName == "tema" || cmdName == "loop" || cmdName == "repetir" {
 			if b.audioHandler != nil {
 				b.audioHandler.HandleSlashCommand(s, i)
 			}
@@ -182,12 +280,18 @@ func (b *Bot) onInteractionCreate(s *discordgo.Session, i *discordgo.Interaction
 			}
 			return
 		}
+		if cmdName == "ficha" || cmdName == "hp" || cmdName == "magia" || cmdName == "descanso" {
+			if b.characterHandler != nil {
+				b.characterHandler.HandleSlashCommand(s, i)
+			}
+			return
+		}
 		if b.dndHandler != nil {
 			b.dndHandler.HandleSlashCommand(s, i)
 		}
 	case discordgo.InteractionApplicationCommandAutocomplete:
 		cmdName := i.ApplicationCommandData().Name
-		if cmdName == "play" || cmdName == "tocar" {
+		if cmdName == "play" || cmdName == "tocar" || cmdName == "temas" || cmdName == "tema" {
 			if b.audioHandler != nil {
 				b.audioHandler.HandleAutocomplete(s, i)
 			}
@@ -207,8 +311,22 @@ func (b *Bot) onInteractionCreate(s *discordgo.Session, i *discordgo.Interaction
 			}
 			return
 		}
+		if strings.HasPrefix(customID, "sheet:") {
+			if b.characterHandler != nil {
+				b.characterHandler.HandleComponentInteraction(s, i)
+			}
+			return
+		}
 		if b.dndHandler != nil {
 			b.dndHandler.HandleComponentInteraction(s, i)
+		}
+	case discordgo.InteractionModalSubmit:
+		customID := i.ModalSubmitData().CustomID
+		if strings.HasPrefix(customID, "sheet:modal:") {
+			if b.characterHandler != nil {
+				b.characterHandler.HandleModalSubmit(s, i)
+			}
+			return
 		}
 	}
 }

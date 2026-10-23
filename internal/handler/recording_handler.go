@@ -173,7 +173,7 @@ func (h *RecordingHandler) handleStop(s *discordgo.Session, i *discordgo.Interac
 	if result.MergedFile != "" {
 		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
 			Name:  "📦 Arquivo Mesclado",
-			Value: fmt.Sprintf("`sessao_completa.ogg`"),
+			Value: "`sessao_completa.ogg`",
 		})
 	}
 

@@ -22,7 +22,12 @@ import prism from 'prism-media';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const MUSIC_DIR = path.resolve(__dirname, '../musicas');
+const AMBIENCE_DIR = path.resolve(__dirname, '../ambiente');
+const TEMAS_DIR = path.resolve(__dirname, '../temas');
 const RECORDINGS_DIR = path.resolve(__dirname, '../gravacoes');
+if (!fs.existsSync(MUSIC_DIR)) fs.mkdirSync(MUSIC_DIR, { recursive: true });
+if (!fs.existsSync(AMBIENCE_DIR)) fs.mkdirSync(AMBIENCE_DIR, { recursive: true });
+if (!fs.existsSync(TEMAS_DIR)) fs.mkdirSync(TEMAS_DIR, { recursive: true });
 if (!fs.existsSync(RECORDINGS_DIR)) fs.mkdirSync(RECORDINGS_DIR, { recursive: true });
 
 // Cache em memória para duração das faixas locais
@@ -36,64 +41,275 @@ function formatDurationSeconds(seconds) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-// Retorna todas as faixas encontradas na pasta /musicas
-function getLocalMusicFiles() {
-    if (!fs.existsSync(MUSIC_DIR)) return [];
+// Catálogo em memória e cenários de ambiente de Curse of Strahd
+let themesCatalogCache = null;
+function getThemesCatalog() {
+    if (themesCatalogCache && themesCatalogCache.length > 0) return themesCatalogCache;
+    try {
+        const catPath = path.join(TEMAS_DIR, 'temas_catalog.json');
+        if (fs.existsSync(catPath)) {
+            themesCatalogCache = JSON.parse(fs.readFileSync(catPath, 'utf8'));
+            return themesCatalogCache;
+        }
+    } catch (e) {
+        console.error('[AudioBridge] Erro ao carregar temas_catalog.json:', e);
+    }
+    return [];
+}
+
+const AMBIENCE_SCENARIOS = {
+    'cos - svalich woods.mp3': { title: 'Floresta Svalich (Svalich Woods)', emoji: '🌲', key: 'svalich', category: 'Exploração & Regiões' },
+    'cos - village of barovia.mp3': { title: 'Vila de Baróvia (Village of Barovia)', emoji: '🏚️', key: 'barovia_village', category: 'Povoados & Civilização' },
+    'cos - town of vallaki.mp3': { title: 'Cidade de Vallaki (Town of Vallaki)', emoji: '🏘️', key: 'vallaki', category: 'Povoados & Civilização' },
+    'cos - village of krezk.mp3': { title: 'Vila de Krezk (Village of Krezk)', emoji: '🏡', key: 'krezk', category: 'Povoados & Civilização' },
+    'cos - castle ravenloft.mp3': { title: 'Castelo Ravenloft (Castle Ravenloft)', emoji: '🏰', key: 'castle_ravenloft', category: 'Masmorras & Covis' },
+    'cos - catacombs.mp3': { title: 'Catacumbas de Ravenloft (Catacombs)', emoji: '⚰️', key: 'catacombs', category: 'Masmorras & Covis' },
+    'cos - death house.mp3': { title: 'Casa da Morte (Death House)', emoji: '🏚️', key: 'death_house', category: 'Masmorras & Covis' },
+    'cos - death house dungeon.mp3': { title: 'Masmorra da Casa da Morte (Death House Dungeon)', emoji: '💀', key: 'death_house_dungeon', category: 'Masmorras & Covis' },
+    'cos - old bonegrinder.mp3': { title: 'Velho Moedor de Ossos (Old Bonegrinder)', emoji: '🦴', key: 'old_bonegrinder', category: 'Marcos Notáveis' },
+    'cos - argynvostholt.mp3': { title: 'Argynvostholt (Mansão do Dragão)', emoji: '🛡️', key: 'argynvostholt', category: 'Marcos Notáveis' },
+    'cos - abbey of st markovia.mp3': { title: 'Abadia de Santa Markovia (Abbey of St. Markovia)', emoji: '⛪', key: 'abbey', category: 'Marcos Notáveis' },
+    'cos - madhouse.mp3': { title: 'Asilo dos Loucos (Madhouse)', emoji: '🤪', key: 'madhouse', category: 'Marcos Notáveis' },
+    'cos - tsolenka pass.mp3': { title: 'Passo de Tsolenka (Tsolenka Pass)', emoji: '❄️', key: 'tsolenka_pass', category: 'Exploração & Regiões' },
+    'cos - van richten\'s tower.mp3': { title: 'Torre de Van Richten (Van Richten\'s Tower)', emoji: '🗼', key: 'van_richtens_tower', category: 'Marcos Notáveis' },
+    'cos - ruins of berez.mp3': { title: 'Ruínas de Berez (Ruins of Berez)', emoji: '🌊', key: 'ruins_of_berez', category: 'Exploração & Regiões' },
+    'cos - wizard of the wines.mp3': { title: 'Mago dos Vinhos (Wizard of the Wines)', emoji: '🍇', key: 'wizard_of_wines', category: 'Marcos Notáveis' },
+    'cos - amber temple.mp3': { title: 'Templo de Âmbar (Amber Temple)', emoji: '🏛️', key: 'amber_temple', category: 'Masmorras & Covis' },
+    'cos - mists of ravenloft.mp3': { title: 'Névoas de Ravenloft (Mists of Ravenloft)', emoji: '🌫️', key: 'mists_of_ravenloft', category: 'Exploração & Regiões' },
+};
+
+// Varre um diretório em busca de faixas de áudio válidas
+function scanDirectoryForAudio(targetDir) {
+    if (!fs.existsSync(targetDir)) return [];
     const validExts = ['.mp3', '.ogg', '.wav', '.flac', '.m4a', '.aac'];
     try {
-        const files = fs.readdirSync(MUSIC_DIR);
+        const files = fs.readdirSync(targetDir);
+        const isTemas = (path.resolve(targetDir) === path.resolve(TEMAS_DIR));
+        const isAmbience = (path.resolve(targetDir) === path.resolve(AMBIENCE_DIR));
+        const catalog = isTemas ? getThemesCatalog() : [];
+
         return files
-            .filter(file => validExts.includes(path.extname(file).toLowerCase()))
+            .filter(file => {
+                const ext = path.extname(file).toLowerCase();
+                if (!validExts.includes(ext)) return false;
+                const base = path.basename(file, ext);
+                // Evitar ler arquivos parciais que ainda estão sendo gravados pelo ffmpeg/yt-dlp
+                if (files.includes(`${base}.webm`) || files.includes(`${base}.webm.part`) || files.includes(`${file}.part`)) {
+                    return false;
+                }
+                return true;
+            })
             .map(file => {
                 const ext = path.extname(file);
                 const baseName = path.basename(file, ext);
+                const lowerFile = file.toLowerCase();
+                const lowerBase = baseName.toLowerCase();
+
                 let cleanTitle = baseName;
                 let emoji = '🎵';
+                let key = lowerBase.replace(/[^a-z0-9]+/g, '_');
+                let category = 'Geral';
+                let duration = durationCache.get(file) || 'Local';
 
-                const lowerBase = baseName.toLowerCase();
-                if (lowerBase.includes('mago') && lowerBase.includes('strahd')) {
-                    cleanTitle = 'Mago e Strahd (História de Baróvia)';
-                    emoji = '🧙‍♂️';
-                } else if (lowerBase.includes('vistani') && (lowerBase.includes('introdução') || lowerBase.includes('introducao'))) {
-                    cleanTitle = 'Vistani (Canção de Introdução)';
-                    emoji = '🎪';
-                } else if (lowerBase.includes('vistani') && lowerBase.includes('festa')) {
-                    cleanTitle = 'Vistani (Festa de Abertura)';
-                    emoji = '🎪';
-                } else if (lowerBase.includes('vistani') || lowerBase.includes('gypsy') || lowerBase.includes('balkan') || lowerBase.includes('cigano')) {
-                    cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
-                    emoji = '🎪';
-                } else if (lowerBase.includes('strahd') || lowerBase.includes('vampiro')) {
-                    cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
-                    emoji = '🩸';
-                } else if (lowerBase.includes('combate') || lowerBase.includes('batalha')) {
-                    cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
-                    emoji = '⚔️';
+                if (isTemas) {
+                    category = 'Baróvia (Temas)';
+                    emoji = '🎭';
+                    // Tenta achar metadados ricos em temas_catalog.json
+                    const catEntry = catalog.find(t => 
+                        t.filename.toLowerCase() === lowerFile ||
+                        path.basename(t.filename, path.extname(t.filename)).toLowerCase() === lowerBase
+                    );
+                    if (catEntry) {
+                        cleanTitle = catEntry.title;
+                        emoji = catEntry.emoji || '🎭';
+                        key = catEntry.key || key;
+                        category = catEntry.category || category;
+                        if (catEntry.duration) duration = catEntry.duration;
+                    } else {
+                        cleanTitle = baseName.replace(/^CoS\s*-\s*/i, '').replace(/^D&D Ambience\s*-\s*\[CoS\]\s*-\s*/i, '').trim();
+                        if (lowerBase.includes('strahd')) emoji = '🩸';
+                        else if (lowerBase.includes('battle') || lowerBase.includes('fight') || lowerBase.includes('combate')) emoji = '⚔️';
+                    }
+                } else if (isAmbience) {
+                    category = 'Cenário & Atmosfera';
+                    emoji = '🏰';
+                    const ambEntry = AMBIENCE_SCENARIOS[lowerFile];
+                    if (ambEntry) {
+                        cleanTitle = ambEntry.title;
+                        emoji = ambEntry.emoji;
+                        key = ambEntry.key;
+                        category = ambEntry.category;
+                    } else {
+                        cleanTitle = baseName.replace(/^CoS\s*-\s*/i, '').trim();
+                    }
                 } else {
-                    cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
+                    category = 'Pasta musicas';
+                    cleanTitle = baseName.replace(/^CoS\s*-\s*/i, '').trim();
+                    if (lowerBase.includes('vistani')) emoji = '🎪';
+                    else if (lowerBase.includes('mago')) emoji = '🧙‍♂️';
                 }
 
-                let duration = durationCache.get(file) || 'Local';
-                const filePath = path.join(MUSIC_DIR, file);
+                const filePath = path.join(targetDir, file);
 
                 return {
                     filename: file,
                     title: cleanTitle,
+                    key,
                     emoji,
                     filePath,
                     ext,
-                    duration
+                    duration,
+                    dir: targetDir,
+                    category,
+                    isLocal: true
                 };
             });
     } catch (err) {
-        console.error('[AudioBridge] Erro ao ler pasta musicas:', err);
+        console.error(`[AudioBridge] Erro ao ler pasta ${targetDir}:`, err);
         return [];
     }
 }
 
+// Retorna faixas da pasta /musicas (músicas locais)
+function getLocalMusicFiles() {
+    return scanDirectoryForAudio(MUSIC_DIR);
+}
+
+// Retorna faixas da pasta /ambiente (ambientes góticos de Curse of Strahd)
+function getLocalAmbienceFiles() {
+    return scanDirectoryForAudio(AMBIENCE_DIR);
+}
+
+// Retorna faixas da pasta /temas (temas e trilhas sonoras de Curse of Strahd)
+function getLocalThemesFiles() {
+    return scanDirectoryForAudio(TEMAS_DIR);
+}
+
+// Retorna todas as faixas locais unificadas (músicas + ambientes + temas)
+function getAllLocalAudioFiles() {
+    return [...getLocalMusicFiles(), ...getLocalAmbienceFiles(), ...getLocalThemesFiles()];
+}
+
+// Resolve qualquer query contra o acervo local físico com prioridade máxima
+function resolveLocalAudio(query) {
+    if (!query) return null;
+    const cleanQuery = query.trim();
+    if (cleanQuery.startsWith('http://') || cleanQuery.startsWith('https://')) {
+        return null; // URLs externas não são locais
+    }
+
+    const localTracks = getAllLocalAudioFiles();
+    const rawTarget = cleanQuery.replace(/^(local:|theme:|ambience:)/i, '').trim();
+    const lowerTarget = rawTarget.toLowerCase();
+
+    // 1. Caminho de arquivo absoluto existente
+    if (fs.existsSync(rawTarget) || fs.existsSync(cleanQuery)) {
+        const fullPath = fs.existsSync(rawTarget) ? path.resolve(rawTarget) : path.resolve(cleanQuery);
+        const found = localTracks.find(t => path.resolve(t.filePath).toLowerCase() === fullPath.toLowerCase());
+        if (found) return found;
+        const ext = path.extname(fullPath);
+        const baseName = path.basename(fullPath, ext);
+        return {
+            filename: path.basename(fullPath),
+            title: baseName,
+            key: baseName.toLowerCase().replace(/[^a-z0-9]+/g, '_'),
+            emoji: '🎵',
+            filePath: fullPath,
+            ext,
+            duration: durationCache.get(path.basename(fullPath)) || 'Local',
+            dir: path.dirname(fullPath),
+            isLocal: true
+        };
+    }
+
+    // 2. Match exato por nome de arquivo (com extensão)
+    let match = localTracks.find(t => t.filename.toLowerCase() === lowerTarget);
+    if (match) return match;
+
+    // 3. Match exato por nome de arquivo sem extensão
+    match = localTracks.find(t => path.basename(t.filename, t.ext).toLowerCase() === lowerTarget);
+    if (match) return match;
+
+    // 4. Match por key exata (ex: "into_the_mists", "mists_of_ravenloft", "strahd_von_zarovich")
+    match = localTracks.find(t => t.key && t.key.toLowerCase() === lowerTarget);
+    if (match) return match;
+
+    // 5. Match transformando underline em espaço e vice-versa
+    const spaceTarget = lowerTarget.replace(/_/g, ' ');
+    const underTarget = lowerTarget.replace(/\s+/g, '_');
+    match = localTracks.find(t => 
+        (t.key && (t.key.toLowerCase() === underTarget || t.key.toLowerCase() === spaceTarget)) ||
+        path.basename(t.filename, t.ext).toLowerCase() === spaceTarget ||
+        path.basename(t.filename, t.ext).toLowerCase() === `cos - ${spaceTarget}`
+    );
+    if (match) return match;
+
+    // 6. Match por título exato
+    match = localTracks.find(t => t.title.toLowerCase() === lowerTarget || t.title.toLowerCase() === spaceTarget);
+    if (match) return match;
+
+    // 7. Match no catálogo de temas (temas_catalog.json) verificando arquivo físico no disco
+    const catalog = getThemesCatalog();
+    const catEntry = catalog.find(t => 
+        t.key.toLowerCase() === lowerTarget ||
+        t.key.toLowerCase() === underTarget ||
+        t.filename.toLowerCase() === lowerTarget ||
+        t.title.toLowerCase() === lowerTarget ||
+        t.title.toLowerCase() === spaceTarget
+    );
+    if (catEntry) {
+        const themePath = path.join(TEMAS_DIR, catEntry.filename);
+        if (fs.existsSync(themePath)) {
+            return {
+                filename: catEntry.filename,
+                title: catEntry.title,
+                key: catEntry.key,
+                emoji: catEntry.emoji || '🎭',
+                filePath: themePath,
+                ext: path.extname(catEntry.filename),
+                duration: catEntry.duration || 'Local',
+                dir: TEMAS_DIR,
+                isLocal: true
+            };
+        }
+    }
+
+    // 8. Match no mapa de cenários de ambiente (CoS)
+    for (const [ambFile, ambInfo] of Object.entries(AMBIENCE_SCENARIOS)) {
+        if (lowerTarget === ambInfo.key || lowerTarget === ambInfo.title.toLowerCase() || lowerTarget === ambFile) {
+            const ambPath = path.join(AMBIENCE_DIR, ambFile);
+            if (fs.existsSync(ambPath)) {
+                return {
+                    filename: ambFile,
+                    title: ambInfo.title,
+                    key: ambInfo.key,
+                    emoji: ambInfo.emoji || '🏰',
+                    filePath: ambPath,
+                    ext: path.extname(ambFile),
+                    duration: durationCache.get(ambFile) || 'Local',
+                    dir: AMBIENCE_DIR,
+                    isLocal: true
+                };
+            }
+        }
+    }
+
+    // 9. Match por substring mais específica (mínimo 4 caracteres para evitar falsos positivos)
+    if (lowerTarget.length >= 4) {
+        match = localTracks.find(t => 
+            path.basename(t.filename, t.ext).toLowerCase().includes(lowerTarget) ||
+            t.title.toLowerCase().includes(lowerTarget) ||
+            (t.key && t.key.toLowerCase().includes(lowerTarget))
+        );
+        if (match) return match;
+    }
+
+    return null;
+}
+
 // Inicializa verificação de duração em segundo plano
 function probeLocalDurations() {
-    const tracks = getLocalMusicFiles();
+    const tracks = getAllLocalAudioFiles();
     for (const track of tracks) {
         if (!durationCache.has(track.filename)) {
             const proc = spawn('ffprobe', [
@@ -158,17 +374,44 @@ function getOrCreateState(guildId) {
                     if (state.queue.length > 0) {
                         const nextTrack = state.queue.shift();
                         playTrack(guildId, nextTrack);
+                    } else if (state.loopMode !== 'off' && finishedTrack) {
+                        playTrack(guildId, finishedTrack);
                     } else {
                         state.isPlaying = false;
                         state.current = null;
                     }
-                } else if (state.loopMode === 'track' && finishedTrack) {
-                    console.log(`[AudioBridge] Repetindo faixa em loop na guild ${guildId}: ${finishedTrack.title}`);
-                    playTrack(guildId, finishedTrack);
-                } else if (state.loopMode === 'queue' && finishedTrack) {
-                    state.queue.push(finishedTrack);
-                    const nextTrack = state.queue.shift();
-                    playTrack(guildId, nextTrack);
+                } else if (state.loopMode === 'track') {
+                    // Se novas músicas foram adicionadas à fila durante o loop de faixa:
+                    // As novas faixas entram no ciclo do loop e transicionam para loop de fila
+                    if (state.queue.length > 0) {
+                        console.log(`[AudioBridge] Músicas adicionadas à fila durante loop na guild ${guildId}. Integrando novas faixas ao ciclo de loop...`);
+                        state.loopMode = 'queue';
+                        if (finishedTrack) {
+                            state.queue.push(finishedTrack);
+                        }
+                        const nextTrack = state.queue.shift();
+                        playTrack(guildId, nextTrack);
+                    } else if (finishedTrack) {
+                        console.log(`[AudioBridge] Repetindo faixa em loop na guild ${guildId}: ${finishedTrack.title}`);
+                        playTrack(guildId, finishedTrack);
+                    } else {
+                        state.isPlaying = false;
+                        state.current = null;
+                    }
+                } else if (state.loopMode === 'queue') {
+                    if (finishedTrack) {
+                        state.queue.push(finishedTrack);
+                    }
+                    if (state.queue.length > 0) {
+                        const nextTrack = state.queue.shift();
+                        console.log(`[AudioBridge] Próxima faixa do loop de fila na guild ${guildId}: ${nextTrack.title} (${state.queue.length} restantes na fila)`);
+                        playTrack(guildId, nextTrack);
+                    } else if (finishedTrack) {
+                        playTrack(guildId, finishedTrack);
+                    } else {
+                        state.isPlaying = false;
+                        state.current = null;
+                    }
                 } else if (state.queue.length > 0) {
                     const nextTrack = state.queue.shift();
                     playTrack(guildId, nextTrack);
@@ -181,6 +424,14 @@ function getOrCreateState(guildId) {
 
         player.on(AudioPlayerStatus.Playing, () => {
             console.log(`[AudioBridge] Player está TOCANDO na guild ${guildId}`);
+            const state = guildStates.get(guildId);
+            if (state) state.isPaused = false;
+        });
+
+        player.on(AudioPlayerStatus.Paused, () => {
+            console.log(`[AudioBridge] Player está PAUSADO na guild ${guildId}`);
+            const state = guildStates.get(guildId);
+            if (state) state.isPaused = true;
         });
 
         player.on(AudioPlayerStatus.Buffering, () => {
@@ -197,6 +448,7 @@ function getOrCreateState(guildId) {
                     playTrack(guildId, nextTrack);
                 } else {
                     state.isPlaying = false;
+                    state.isPaused = false;
                     state.current = null;
                 }
             }
@@ -207,8 +459,13 @@ function getOrCreateState(guildId) {
             connection: null,
             player,
             queue: [],
+            history: [],
             current: null,
             isPlaying: false,
+            isPaused: false,
+            volume: 1.0,
+            resource: null,
+            trackStartTime: null,
             activeProcesses: [],
             loopMode: 'off',
             isSkipping: false,
@@ -265,23 +522,72 @@ async function extractDirectStreamUrl(targetUrl) {
     });
 }
 
-async function playTrack(guildId, track) {
+// Fade out suave da faixa atual
+async function fadeOutCurrentTrack(state, durationMs = 1500) {
+    if (!state || !state.isPlaying || !state.resource || !state.resource.volume) {
+        return;
+    }
+    const targetVol = (typeof state.volume === 'number') ? state.volume : 1.0;
+    const steps = 15;
+    const stepTime = Math.max(15, Math.floor(durationMs / steps));
+    for (let i = 1; i <= steps; i++) {
+        await new Promise(r => setTimeout(r, stepTime));
+        const factor = (steps - i) / steps;
+        try {
+            if (state.resource && state.resource.volume) {
+                state.resource.volume.setVolume(targetVol * factor);
+            }
+        } catch (_) {}
+    }
+}
+
+// Fade in suave da nova faixa
+async function fadeInNewTrack(state, durationMs = 1200, targetVol = 1.0) {
+    const steps = 15;
+    const stepTime = Math.max(15, Math.floor(durationMs / steps));
+    for (let i = 1; i <= steps; i++) {
+        await new Promise(r => setTimeout(r, stepTime));
+        const factor = i / steps;
+        try {
+            if (state.resource && state.resource.volume) {
+                state.resource.volume.setVolume(targetVol * factor);
+            }
+        } catch (_) {}
+    }
+}
+
+async function playTrack(guildId, track, options = {}) {
     const state = getOrCreateState(guildId);
+
+    // Se foi solicitada transição suave e já está tocando algo
+    if (options.transition && state.isPlaying && state.resource) {
+        console.log(`[AudioBridge] Realizando transição suave (fade-out) na guild ${guildId}...`);
+        await fadeOutCurrentTrack(state, options.fadeDuration || 1500);
+    }
+
+    if (state.current && state.current !== track) {
+        if (!state.history) state.history = [];
+        state.history.push(state.current);
+        if (state.history.length > 50) state.history.shift();
+    }
     state.current = track;
     state.isPlaying = true;
+    state.isPaused = false;
+    state.trackStartTime = Date.now();
     cleanupActiveProcesses(state);
 
     try {
-        console.log(`[AudioBridge] Iniciando reprodução na guild ${guildId}: ${track.title}`);
+        console.log(`[AudioBridge] Iniciando reprodução na guild ${guildId}: ${track.title} (Transição: ${Boolean(options.transition)})`);
 
         let streamUrl = track.url;
-        // Não tentar extrair stream do YouTube se for arquivo local, preset ou stream direto .mp3
-        if (!track.isLocal && !track.isPreset && !track.url.includes('zeno.fm') && !track.url.endsWith('.mp3')) {
+        const isLocalFile = (track.isLocal || fs.existsSync(track.url)) && fs.existsSync(track.url);
+        // Se não for arquivo local existente ou preset/stream direto, extrai stream HTTPS do YouTube via yt-dlp
+        if (!isLocalFile && !track.isPreset && !track.url.includes('zeno.fm')) {
             console.log(`[AudioBridge] Extraindo stream direto para: ${track.url}`);
             streamUrl = await extractDirectStreamUrl(track.url);
         }
 
-        console.log(`[AudioBridge] FFmpeg conectando ao áudio: ${streamUrl.substring(0, 80)}...`);
+        console.log(`[AudioBridge] FFmpeg conectando ao áudio (${isLocalFile ? 'ARQUIVO LOCAL' : 'STREAM WEB'}): ${streamUrl.substring(0, 80)}...`);
 
         const ffmpegArgs = [];
         if (streamUrl.startsWith('http://') || streamUrl.startsWith('https://')) {
@@ -304,11 +610,22 @@ async function playTrack(guildId, track) {
             inlineVolume: true
         });
 
-        if (resource.volume) {
-            resource.volume.setVolume(1.0);
-        }
+        state.resource = resource;
+        const currentVol = (typeof state.volume === 'number') ? state.volume : 1.0;
 
-        state.player.play(resource);
+        if (resource.volume) {
+            if (options.transition) {
+                // Inicia com volume zerado e sobe gradualmente (fade-in)
+                resource.volume.setVolume(0.0);
+                state.player.play(resource);
+                fadeInNewTrack(state, options.fadeDuration || 1200, currentVol);
+            } else {
+                resource.volume.setVolume(currentVol);
+                state.player.play(resource);
+            }
+        } else {
+            state.player.play(resource);
+        }
 
         if (state.connection) {
             state.connection.subscribe(state.player);
@@ -319,6 +636,31 @@ async function playTrack(guildId, track) {
         state.current = null;
     }
 }
+
+// Mapeamento dos Cenários de Curse of Strahd para fallback de streaming imediato
+const COS_TRACK_YOUTUBE_MAP = {
+    "svalich": { id: "eePl-I8heFc", title: "Floresta Svalich (Svalich Woods)", filename: "CoS - Svalich Woods.mp3", emoji: "🌲" },
+    "death house dungeon": { id: "eqUiXz1tcmM", title: "Masmorra da Casa da Morte (Death House Dungeon)", filename: "CoS - Death House Dungeon.mp3", emoji: "💀" },
+    "death house": { id: "GOTyzCntzJo", title: "Casa da Morte (Death House)", filename: "CoS - Death House.mp3", emoji: "🏚️" },
+    "village of barovia": { id: "nnEGIH1mXwI", title: "Vila de Baróvia (Village of Barovia)", filename: "CoS - Village of Barovia.mp3", emoji: "🏚️" },
+    "barovia": { id: "nnEGIH1mXwI", title: "Vila de Baróvia (Village of Barovia)", filename: "CoS - Village of Barovia.mp3", emoji: "🏚️" },
+    "vallaki": { id: "2UPkwe_5p_w", title: "Cidade de Vallaki (Town of Vallaki)", filename: "CoS - Town Of Vallaki.mp3", emoji: "🏘️" },
+    "bonegrinder": { id: "J63qJ_GFV_k", title: "Velho Moedor de Ossos (Old Bonegrinder)", filename: "CoS - Old Bonegrinder.mp3", emoji: "🦴" },
+    "argynvostholt": { id: "K08IQhgXDWQ", title: "Argynvostholt (Mansão do Dragão)", filename: "CoS - Argynvostholt.mp3", emoji: "🛡️" },
+    "castle ravenloft": { id: "rfA-pzDkERs", title: "Castelo Ravenloft (Castle Ravenloft)", filename: "CoS - Castle Ravenloft.mp3", emoji: "🏰" },
+    "ravenloft": { id: "rfA-pzDkERs", title: "Castelo Ravenloft (Castle Ravenloft)", filename: "CoS - Castle Ravenloft.mp3", emoji: "🏰" },
+    "catacombs": { id: "WPpVMmTt74Q", title: "Catacumbas de Ravenloft (Catacombs)", filename: "CoS - Catacombs.mp3", emoji: "⚰️" },
+    "krezk": { id: "ZRnLm7BJMnw", title: "Vila de Krezk (Village of Krezk)", filename: "CoS - Village of Krezk.mp3", emoji: "🏡" },
+    "markovia": { id: "8AODR94oNMo", title: "Abadia de Santa Markovia (Abbey of St. Markovia)", filename: "CoS - Abbey of St Markovia.mp3", emoji: "⛪" },
+    "abbey": { id: "8AODR94oNMo", title: "Abadia de Santa Markovia (Abbey of St. Markovia)", filename: "CoS - Abbey of St Markovia.mp3", emoji: "⛪" },
+    "madhouse": { id: "1gDfJHT5n0U", title: "Asilo dos Loucos (Madhouse)", filename: "CoS - Madhouse.mp3", emoji: "🤪" },
+    "tsolenka": { id: "L_eIOeXIEfo", title: "Passo de Tsolenka (Tsolenka Pass)", filename: "CoS - Tsolenka Pass.mp3", emoji: "❄️" },
+    "van richten": { id: "1u7rJTtlbKw", title: "Torre de Van Richten (Van Richten's Tower)", filename: "CoS - Van Richten's Tower.mp3", emoji: "🗼" },
+    "berez": { id: "9MsH9vN1aFQ", title: "Ruínas de Berez (Ruins of Berez)", filename: "CoS - Ruins of Berez.mp3", emoji: "🌊" },
+    "wines": { id: "4hT8zvR-nkg", title: "Mago dos Vinhos (Wizard of the Wines)", filename: "CoS - Wizard Of The Wines.mp3", emoji: "🍇" },
+    "amber temple": { id: "Dd91LPwFAMk", title: "Templo de Âmbar (Amber Temple)", filename: "CoS - Amber Temple.mp3", emoji: "🏛️" },
+    "mists": { id: "J41ipvUvIzI", title: "Névoas de Ravenloft (Mists of Ravenloft)", filename: "CoS - Mists of Ravenloft.mp3", emoji: "🌫️" },
+};
 
 // Presets de Áudio D&D
 const AMBIENT_PRESETS = {
@@ -358,6 +700,66 @@ app.get('/local-tracks', (req, res) => {
         path: t.filePath
     }));
     res.json({ tracks });
+});
+
+// Lista de Temas de Curse of Strahd da pasta /temas
+app.get('/temas-tracks', (req, res) => {
+    const tracks = getLocalThemesFiles().map(t => ({
+        filename: t.filename,
+        title: t.title,
+        emoji: t.emoji,
+        duration: t.duration,
+        path: t.filePath
+    }));
+    res.json({ tracks });
+});
+
+// Lista de Ambientes de Curse of Strahd da pasta /ambiente
+app.get('/ambience-tracks', (req, res) => {
+    const tracks = getLocalAmbienceFiles().map(t => ({
+        filename: t.filename,
+        title: t.title,
+        emoji: t.emoji,
+        duration: t.duration,
+        path: t.filePath,
+        category: t.category
+    }));
+    res.json({ tracks });
+});
+
+// Conectar ao canal de voz
+app.post('/join', async (req, res) => {
+    const { guildId, channelId } = req.body;
+    if (!guildId || !channelId) {
+        return res.status(400).json({ error: 'guildId e channelId são obrigatórios' });
+    }
+    try {
+        const guild = await client.guilds.fetch(guildId);
+        if (!guild) {
+            return res.status(404).json({ error: 'Servidor não encontrado' });
+        }
+        const state = getOrCreateState(guildId);
+        if (!state.connection || state.connection.state.status === VoiceConnectionStatus.Destroyed) {
+            state.connection = joinVoiceChannel({
+                channelId,
+                guildId,
+                adapterCreator: guild.voiceAdapterCreator,
+                selfDeaf: !state.isRecording,
+                selfMute: false
+            });
+            state.connection.subscribe(state.player);
+        } else {
+            state.connection.rejoin({
+                channelId,
+                selfDeaf: !state.isRecording,
+                selfMute: false
+            });
+        }
+        res.json({ status: 'connected', guildId, channelId });
+    } catch (err) {
+        console.error('[AudioBridge] Erro ao entrar no canal de voz:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // Play / Enqueue
@@ -461,38 +863,15 @@ async function extractPlaylistTracks(playlistUrl, requester) {
             }
         }
 
-        // 0. Detectar se é uma música local da pasta /musicas
-        const localTracks = getLocalMusicFiles();
-        let matchedLocal = null;
-
-        if (lowerQuery.startsWith('local:')) {
-            const cleanTarget = query.slice(6).trim().toLowerCase();
-            matchedLocal = localTracks.find(t => 
-                t.filename.toLowerCase() === cleanTarget || 
-                path.basename(t.filename, t.ext).toLowerCase() === cleanTarget
-            );
-        } else if (!query.startsWith('http://') && !query.startsWith('https://')) {
-            // Match exato por nome de arquivo ou sem extensão
-            matchedLocal = localTracks.find(t => 
-                t.filename.toLowerCase() === lowerQuery ||
-                path.basename(t.filename, t.ext).toLowerCase() === lowerQuery
-            );
-            // Se não encontrou exato, busca por substring
-            if (!matchedLocal) {
-                matchedLocal = localTracks.find(t => 
-                    t.filename.toLowerCase().includes(lowerQuery) ||
-                    t.title.toLowerCase().includes(lowerQuery) ||
-                    lowerQuery.includes(path.basename(t.filename, t.ext).toLowerCase())
-                );
-            }
-        }
+        // 0. Resolução de áudio local com prioridade absoluta
+        const matchedLocal = resolveLocalAudio(query);
 
         if (matchedLocal) {
-            console.log(`[AudioBridge] Faixa local identificada: ${matchedLocal.filename}`);
+            console.log(`[AudioBridge] Faixa local identificada com SUCESSO: ${matchedLocal.filename} (${matchedLocal.filePath})`);
             trackInfo = {
                 title: `${matchedLocal.emoji} ${matchedLocal.title}`,
                 url: matchedLocal.filePath,
-                duration: matchedLocal.duration || 'Local',
+                duration: matchedLocal.duration || durationCache.get(matchedLocal.filename) || 'Local',
                 requester: requester || 'Mestre',
                 isPreset: false,
                 isLocal: true,
@@ -503,83 +882,201 @@ async function extractPlaylistTracks(playlistUrl, requester) {
                 ...AMBIENT_PRESETS[lowerQuery],
                 requester: requester || 'Mestre'
             };
-        } else if (query.startsWith('http://') || query.startsWith('https://')) {
-            // Extrair título e duração via yt-dlp
-            let title = 'Áudio Web';
-            let duration = 'Online';
-            try {
-                const infoProc = spawn('yt-dlp', [
-                    '--no-warnings',
-                    '--print', '%(title)s|%(id)s|%(duration_string)s',
-                    '--no-playlist',
-                    query
-                ]);
-                let outData = '';
-                infoProc.stdout.on('data', (d) => outData += d.toString());
-                await new Promise((resolve) => infoProc.on('close', resolve));
-                const line = outData.trim().split('\n')[0];
-                if (line) {
-                    const parts = line.split('|');
-                    if (parts[0] && parts[0].trim()) title = parts[0].trim();
-                    if (parts[2] && parts[2].trim() && parts[2].trim() !== 'NA') duration = parts[2].trim();
-                }
-            } catch (_) {}
-
-            trackInfo = {
-                title,
-                url: query,
-                duration,
-                requester: requester || 'Jogador',
-                isPreset: false
-            };
         } else {
-            // Busca no YouTube via yt-dlp search
-            let title = query;
-            let targetUrl = `ytsearch1:${query}`;
-            let duration = 'Desconhecida';
-
-            try {
-                const infoProc = spawn('yt-dlp', [
-                    '--no-warnings',
-                    '--print', '%(title)s|%(id)s|%(duration_string)s',
-                    '--no-playlist',
-                    `ytsearch1:${query}`
-                ]);
-                let outData = '';
-                infoProc.stdout.on('data', (d) => outData += d.toString());
-                await new Promise((resolve) => infoProc.on('close', resolve));
-                const line = outData.trim().split('\n')[0];
-                if (line) {
-                    const parts = line.split('|');
-                    if (parts[0] && parts[0].trim()) title = parts[0].trim();
-                    const videoId = parts[1] ? parts[1].trim() : '';
-                    if (parts[2] && parts[2].trim() && parts[2].trim() !== 'NA') duration = parts[2].trim();
-                    if (videoId) {
-                        targetUrl = `https://www.youtube.com/watch?v=${videoId}`;
-                    }
+            // Verificar se corresponde a um cenário de Curse of Strahd (checa se o arquivo local existe antes de qualquer streaming)
+            let matchedCoS = null;
+            for (const [key, cosInfo] of Object.entries(COS_TRACK_YOUTUBE_MAP)) {
+                if (lowerQuery === key || lowerQuery === key.replace(/\s+/g, '_') || (cosInfo.filename && lowerQuery === cosInfo.filename.toLowerCase())) {
+                    matchedCoS = cosInfo;
+                    break;
                 }
-            } catch (err) {
-                console.error('[AudioBridge] Erro na busca do YouTube:', err);
             }
 
-            trackInfo = {
-                title,
-                url: targetUrl,
-                duration,
-                requester: requester || 'Jogador',
-                isPreset: false
-            };
+            if (matchedCoS) {
+                // Checa primeiro se o arquivo existe na pasta ambiente/ ou temas/ ou musicas/!
+                const possiblePaths = [
+                    path.join(AMBIENCE_DIR, matchedCoS.filename),
+                    path.join(TEMAS_DIR, matchedCoS.filename),
+                    path.join(MUSIC_DIR, matchedCoS.filename)
+                ];
+                const localFound = possiblePaths.find(p => fs.existsSync(p));
+                if (localFound) {
+                    console.log(`[AudioBridge] Cenário CoS encontrado no disco: ${localFound}`);
+                    trackInfo = {
+                        title: `${matchedCoS.emoji} ${matchedCoS.title}`,
+                        url: localFound,
+                        duration: durationCache.get(matchedCoS.filename) || 'Local',
+                        requester: requester || 'Mestre',
+                        isPreset: false,
+                        isLocal: true,
+                        filename: matchedCoS.filename
+                    };
+                } else {
+                    console.log(`[AudioBridge] Cenário de Baróvia identificado (streaming YouTube fallback): ${matchedCoS.title}`);
+                    trackInfo = {
+                        title: `${matchedCoS.emoji} ${matchedCoS.title}`,
+                        url: `https://www.youtube.com/watch?v=${matchedCoS.id}`,
+                        duration: 'Online (CoS)',
+                        requester: requester || 'Mestre',
+                        isPreset: false,
+                        isLocal: false
+                    };
+                }
+            } else if (lowerQuery.startsWith('local:') || lowerQuery.startsWith('theme:') || lowerQuery.startsWith('ambience:')) {
+                const cleanTarget = query.replace(/^(local:|theme:|ambience:)/i, '').trim();
+                const lowerTarget = cleanTarget.toLowerCase();
+
+                // Busca no catálogo de temas para checar arquivo físico e fallback online
+                const catalog = getThemesCatalog();
+                const matchedTheme = catalog.find(t => 
+                    t.filename.toLowerCase() === lowerTarget ||
+                    t.key.toLowerCase() === lowerTarget ||
+                    t.title.toLowerCase() === lowerTarget
+                );
+
+                if (matchedTheme) {
+                    const themePath = path.join(TEMAS_DIR, matchedTheme.filename);
+                    if (fs.existsSync(themePath)) {
+                        console.log(`[AudioBridge] Tema de Baróvia carregado do disco: ${themePath}`);
+                        trackInfo = {
+                            title: `${matchedTheme.emoji} ${matchedTheme.title}`,
+                            url: themePath,
+                            duration: matchedTheme.duration || 'Local',
+                            requester: requester || 'Mestre',
+                            isPreset: false,
+                            isLocal: true,
+                            filename: matchedTheme.filename
+                        };
+                    } else if (matchedTheme.youtube_url) {
+                        console.log(`[AudioBridge] Tema de Baróvia identificado no catálogo (streaming YouTube fallback): ${matchedTheme.title}`);
+                        trackInfo = {
+                            title: `${matchedTheme.emoji} ${matchedTheme.title}`,
+                            url: matchedTheme.youtube_url,
+                            duration: matchedTheme.duration || 'Online (Tema CoS)',
+                            requester: requester || 'Mestre',
+                            isPreset: false,
+                            isLocal: false
+                        };
+                    }
+                }
+
+                if (!trackInfo) {
+                    return res.status(404).json({ error: `Faixa local "${cleanTarget}" não foi encontrada nas pastas ambiente, temas ou musicas.` });
+                }
+            }
+        }
+
+        if (!trackInfo) {
+            if (query.startsWith('http://') || query.startsWith('https://')) {
+                // Extrair título e duração via yt-dlp
+                let title = 'Áudio Web';
+                let duration = 'Online';
+                try {
+                    const infoProc = spawn('yt-dlp', [
+                        '--no-warnings',
+                        '--print', '%(title)s|%(id)s|%(duration_string)s',
+                        '--no-playlist',
+                        query
+                    ]);
+                    let outData = '';
+                    infoProc.stdout.on('data', (d) => outData += d.toString());
+                    await new Promise((resolve) => infoProc.on('close', resolve));
+                    const line = outData.trim().split('\n')[0];
+                    if (line) {
+                        const parts = line.split('|');
+                        if (parts[0] && parts[0].trim()) title = parts[0].trim();
+                        if (parts[2] && parts[2].trim() && parts[2].trim() !== 'NA') duration = parts[2].trim();
+                    }
+                } catch (_) {}
+
+                trackInfo = {
+                    title,
+                    url: query,
+                    duration,
+                    requester: requester || 'Jogador',
+                    isPreset: false
+                };
+            } else {
+                // Busca no YouTube via yt-dlp search
+                let title = query;
+                let targetUrl = `ytsearch1:${query}`;
+                let duration = 'Desconhecida';
+
+                try {
+                    const infoProc = spawn('yt-dlp', [
+                        '--no-warnings',
+                        '--print', '%(title)s|%(id)s|%(duration_string)s',
+                        '--no-playlist',
+                        `ytsearch1:${query}`
+                    ]);
+                    let outData = '';
+                    infoProc.stdout.on('data', (d) => outData += d.toString());
+                    await new Promise((resolve) => infoProc.on('close', resolve));
+                    const line = outData.trim().split('\n')[0];
+                    if (line) {
+                        const parts = line.split('|');
+                        if (parts[0] && parts[0].trim()) title = parts[0].trim();
+                        const videoId = parts[1] ? parts[1].trim() : '';
+                        if (parts[2] && parts[2].trim() && parts[2].trim() !== 'NA') duration = parts[2].trim();
+                        if (videoId) {
+                            targetUrl = `https://www.youtube.com/watch?v=${videoId}`;
+                        }
+                    }
+                } catch (err) {
+                    console.error('[AudioBridge] Erro na busca do YouTube:', err);
+                }
+
+                trackInfo = {
+                    title,
+                    url: targetUrl,
+                    duration,
+                    requester: requester || 'Jogador',
+                    isPreset: false
+                };
+            }
         }
 
         if (state.isPlaying) {
-            state.queue.push(trackInfo);
-            return res.json({
-                status: 'queued',
-                position: state.queue.length,
-                track: trackInfo
-            });
+            if (req.body.transition) {
+                // Transição suave imediata substituindo a faixa atual com crossfade
+                // Se o modo de loop estiver ativo, mantém a faixa anterior na fila para continuar no loop
+                if (state.loopMode !== 'off' && state.current) {
+                    state.queue.push(state.current);
+                    if (state.loopMode === 'track') {
+                        state.loopMode = 'queue';
+                    }
+                }
+                await playTrack(guildId, trackInfo, {
+                    transition: true,
+                    fadeDuration: req.body.fadeDuration || 1500
+                });
+                return res.json({
+                    status: 'playing',
+                    transition: true,
+                    position: 0,
+                    track: trackInfo
+                });
+            } else if (req.body.playNext) {
+                // Inserir no topo da fila como a próxima música a tocar
+                state.queue.unshift(trackInfo);
+                return res.json({
+                    status: 'next',
+                    position: 1,
+                    track: trackInfo
+                });
+            } else {
+                state.queue.push(trackInfo);
+                return res.json({
+                    status: 'queued',
+                    position: state.queue.length,
+                    track: trackInfo
+                });
+            }
         } else {
-            playTrack(guildId, trackInfo);
+            await playTrack(guildId, trackInfo, {
+                transition: Boolean(req.body.transition),
+                fadeDuration: req.body.fadeDuration || 1200
+            });
             return res.json({
                 status: 'playing',
                 position: 0,
@@ -600,30 +1097,81 @@ app.post('/stop', (req, res) => {
         state.queue = [];
         state.current = null;
         state.isPlaying = false;
+        state.isPaused = false;
         cleanupActiveProcesses(state);
         state.player.stop(true);
     }
     res.json({ status: 'stopped' });
 });
 
-// Skip
-app.post('/skip', (req, res) => {
+// Pause
+app.post('/pause', (req, res) => {
     const { guildId } = req.body;
     const state = guildStates.get(guildId);
+    if (state && state.player) {
+        const success = state.player.pause();
+        state.isPaused = true;
+        console.log(`[AudioBridge] Reprodução pausada na guild ${guildId}`);
+        return res.json({ status: 'paused', isPaused: true, success });
+    }
+    res.status(404).json({ error: 'Nenhuma reprodução ativa para este servidor' });
+});
+
+// Resume
+app.post('/resume', (req, res) => {
+    const { guildId } = req.body;
+    const state = guildStates.get(guildId);
+    if (state && state.player) {
+        const success = state.player.unpause();
+        state.isPaused = false;
+        console.log(`[AudioBridge] Reprodução retomada na guild ${guildId}`);
+        return res.json({ status: 'resumed', isPaused: false, success });
+    }
+    res.status(404).json({ error: 'Nenhuma reprodução ativa para este servidor' });
+});
+
+// Skip (Avançar música) com suporte a transição suave opcional
+app.post('/skip', async (req, res) => {
+    const { guildId, transition, fadeDuration } = req.body;
+    const state = guildStates.get(guildId);
     if (state && state.isPlaying) {
-        cleanupActiveProcesses(state);
         state.isSkipping = true;
+        if (transition && state.resource) {
+            console.log(`[AudioBridge] Skip com transição suave na guild ${guildId}...`);
+            await fadeOutCurrentTrack(state, fadeDuration || 1500);
+        }
+        cleanupActiveProcesses(state);
+        if (state.current) {
+            if (!state.history) state.history = [];
+            state.history.push(state.current);
+            if (state.history.length > 50) state.history.shift();
+        }
         if (state.queue.length > 0) {
             const nextTrack = state.queue.shift();
-            // Se loop de fila estiver ativo, a faixa que estava tocando vai para o fim da fila
-            if (state.loopMode === 'queue' && state.current) {
+            // Se loop de fila ou faixa estiver ativo, a faixa que estava tocando vai para o fim da fila para continuar no loop
+            if ((state.loopMode === 'queue' || state.loopMode === 'track') && state.current) {
                 state.queue.push(state.current);
+                if (state.loopMode === 'track') {
+                    state.loopMode = 'queue';
+                }
             }
-            playTrack(guildId, nextTrack);
+            playTrack(guildId, nextTrack, {
+                transition: Boolean(transition),
+                fadeDuration: fadeDuration || 1200
+            });
             state.isSkipping = false;
-            return res.json({ status: 'skipped', hasNext: true });
+            return res.json({ status: 'skipped', hasNext: true, track: nextTrack });
+        } else if (state.loopMode !== 'off' && state.current) {
+            // Se em loop sem outras faixas na fila, reinicia a reprodução da faixa atual no loop
+            playTrack(guildId, state.current, {
+                transition: Boolean(transition),
+                fadeDuration: fadeDuration || 1200
+            });
+            state.isSkipping = false;
+            return res.json({ status: 'skipped', hasNext: true, track: state.current });
         } else {
             state.isPlaying = false;
+            state.isPaused = false;
             state.current = null;
             state.player.stop(true);
             state.isSkipping = false;
@@ -631,6 +1179,48 @@ app.post('/skip', (req, res) => {
         }
     }
     res.json({ status: 'idle' });
+});
+
+// Previous (Voltar música)
+app.post('/previous', (req, res) => {
+    const { guildId } = req.body;
+    const state = guildStates.get(guildId);
+    if (!state) {
+        return res.status(404).json({ error: 'Nenhuma reprodução ativa para este servidor' });
+    }
+    cleanupActiveProcesses(state);
+    if (state.history && state.history.length > 0) {
+        const prevTrack = state.history.pop();
+        if (state.current) {
+            state.queue.unshift(state.current);
+        }
+        playTrack(guildId, prevTrack);
+        return res.json({ status: 'previous', track: prevTrack });
+    } else if (state.current) {
+        // Se histórico estiver vazio, reinicia a música atual
+        playTrack(guildId, state.current);
+        return res.json({ status: 'restarted', track: state.current });
+    }
+    res.json({ status: 'idle' });
+});
+
+// Volume (Ajustar volume de 0.0 a 2.0)
+app.post('/volume', (req, res) => {
+    const { guildId, volume } = req.body;
+    const state = guildStates.get(guildId);
+    if (!state) {
+        return res.status(404).json({ error: 'Nenhuma reprodução ativa para este servidor' });
+    }
+    const vol = parseFloat(volume);
+    if (isNaN(vol) || vol < 0 || vol > 3.0) {
+        return res.status(400).json({ error: 'Volume inválido (use um valor entre 0.0 e 3.0)' });
+    }
+    state.volume = vol;
+    if (state.resource && state.resource.volume) {
+        state.resource.volume.setVolume(vol);
+    }
+    console.log(`[AudioBridge] Volume definido para ${(vol * 100).toFixed(0)}% na guild ${guildId}`);
+    res.json({ status: 'ok', volume: vol });
 });
 
 // Loop (Música Atual / Fila / Desativado)
@@ -648,11 +1238,11 @@ app.post('/loop', (req, res) => {
     } else if (mode === 'off' || mode === 'desativar') {
         state.loopMode = 'off';
     } else {
-        // Alternância cíclica: off -> track -> queue -> off
+        // Alternância cíclica natural: off -> queue -> track -> off
         if (state.loopMode === 'off') {
-            state.loopMode = 'track';
-        } else if (state.loopMode === 'track') {
             state.loopMode = 'queue';
+        } else if (state.loopMode === 'queue') {
+            state.loopMode = 'track';
         } else {
             state.loopMode = 'off';
         }
@@ -660,6 +1250,86 @@ app.post('/loop', (req, res) => {
 
     console.log(`[AudioBridge] Modo de loop alterado para ${state.loopMode} na guild ${guildId}`);
     res.json({ loopMode: state.loopMode });
+});
+
+// Queue Remove (Remover faixa da fila por índice)
+app.post('/queue/remove', (req, res) => {
+    const { guildId, index } = req.body;
+    const state = guildStates.get(guildId);
+    if (!state) {
+        return res.status(404).json({ error: 'Nenhuma reprodução ativa para este servidor' });
+    }
+    const idx = parseInt(index, 10);
+    if (isNaN(idx) || idx < 0 || idx >= state.queue.length) {
+        return res.status(400).json({ error: 'Índice de fila inválido' });
+    }
+    const removed = state.queue.splice(idx, 1)[0];
+    res.json({ status: 'removed', removed, queue: state.queue });
+});
+
+// Queue Clear (Limpar fila)
+app.post('/queue/clear', (req, res) => {
+    const { guildId } = req.body;
+    const state = guildStates.get(guildId);
+    if (state) {
+        state.queue = [];
+    }
+    res.json({ status: 'cleared' });
+});
+
+// Queue Promote (Mover faixa para a primeira posição da fila - próxima a tocar)
+app.post('/queue/promote', (req, res) => {
+    const { guildId, index } = req.body;
+    const state = guildStates.get(guildId);
+    if (!state) {
+        return res.status(404).json({ error: 'Nenhuma reprodução ativa para este servidor' });
+    }
+    const idx = parseInt(index, 10);
+    if (isNaN(idx) || idx < 0 || idx >= state.queue.length) {
+        return res.status(400).json({ error: 'Índice de fila inválido' });
+    }
+    const item = state.queue.splice(idx, 1)[0];
+    state.queue.unshift(item);
+    console.log(`[AudioBridge] Faixa promovida para o topo da fila na guild ${guildId}: ${item.title}`);
+    res.json({ status: 'promoted', track: item, queue: state.queue });
+});
+
+// Queue Jump (Pular imediatamente para uma música específica da fila, com opção de transição suave)
+app.post('/queue/jump', async (req, res) => {
+    const { guildId, index, transition, fadeDuration } = req.body;
+    const state = guildStates.get(guildId);
+    if (!state) {
+        return res.status(404).json({ error: 'Nenhuma reprodução ativa para este servidor' });
+    }
+    const idx = parseInt(index, 10);
+    if (isNaN(idx) || idx < 0 || idx >= state.queue.length) {
+        return res.status(400).json({ error: 'Índice de fila inválido' });
+    }
+    const targetTrack = state.queue.splice(idx, 1)[0];
+    state.isSkipping = true;
+    if (transition && state.isPlaying && state.resource) {
+        console.log(`[AudioBridge] Jump com transição suave na guild ${guildId}...`);
+        await fadeOutCurrentTrack(state, fadeDuration || 1500);
+    }
+    cleanupActiveProcesses(state);
+    if (state.current) {
+        if (!state.history) state.history = [];
+        state.history.push(state.current);
+        if (state.history.length > 50) state.history.shift();
+        if (state.loopMode === 'queue' || state.loopMode === 'track') {
+            state.queue.push(state.current);
+            if (state.loopMode === 'track') {
+                state.loopMode = 'queue';
+            }
+        }
+    }
+    playTrack(guildId, targetTrack, {
+        transition: Boolean(transition),
+        fadeDuration: fadeDuration || 1200
+    });
+    state.isSkipping = false;
+    console.log(`[AudioBridge] Saltou para a faixa na guild ${guildId}: ${targetTrack.title} (Transição: ${Boolean(transition)})`);
+    res.json({ status: 'jumped', track: targetTrack, queue: state.queue });
 });
 
 // Leave
@@ -670,6 +1340,7 @@ app.post('/leave', (req, res) => {
         state.queue = [];
         state.current = null;
         state.isPlaying = false;
+        state.isPaused = false;
         state.loopMode = 'off';
         cleanupActiveProcesses(state);
         state.player.stop(true);
@@ -682,17 +1353,31 @@ app.post('/leave', (req, res) => {
     res.json({ status: 'disconnected' });
 });
 
-// Queue
+// Queue & Status
 app.get('/queue/:guildId', (req, res) => {
     const state = guildStates.get(req.params.guildId);
     if (!state) {
-        return res.json({ current: null, queue: [], isPlaying: false, loopMode: 'off' });
+        return res.json({
+            current: null,
+            queue: [],
+            history: [],
+            isPlaying: false,
+            isPaused: false,
+            loopMode: 'off',
+            volume: 1.0,
+            playbackDurationMs: 0
+        });
     }
     res.json({
         current: state.current,
         queue: state.queue,
+        history: state.history || [],
         isPlaying: state.isPlaying,
-        loopMode: state.loopMode || 'off'
+        isPaused: Boolean(state.isPaused || (state.player && state.player.state.status === AudioPlayerStatus.Paused)),
+        loopMode: state.loopMode || 'off',
+        volume: state.volume !== undefined ? state.volume : 1.0,
+        trackStartTime: state.trackStartTime || null,
+        playbackDurationMs: state.resource ? state.resource.playbackDuration : 0
     });
 });
 
@@ -750,6 +1435,20 @@ function updateSessionParticipant(sessionDir, userId, username) {
     } catch (_) {}
 }
 
+// Preenche arquivo PCM com silêncio (zeros) para manter alinhamento temporal exato
+function padSilence(filePath, padBytes) {
+    if (padBytes <= 0) return;
+    const CHUNK_SIZE = 192000; // 1s de silêncio a 48kHz estéreo s16le (192.000 bytes)
+    const fd = fs.openSync(filePath, 'a');
+    let remaining = padBytes;
+    while (remaining > 0) {
+        const toWrite = Math.min(remaining, CHUNK_SIZE);
+        fs.writeSync(fd, Buffer.alloc(toWrite));
+        remaining -= toWrite;
+    }
+    fs.closeSync(fd);
+}
+
 // Inicia a captura de áudio de todos os usuários no canal de voz
 function startRecording(guildId) {
     const state = guildStates.get(guildId);
@@ -778,11 +1477,28 @@ function startRecording(guildId) {
 
         console.log(`[Recorder] Usuário ${userId} começou a falar na guild ${guildId}`);
 
+        const userFile = path.join(sessionDir, `${userId}.pcm`);
+
+        // Sincronização temporal: se o usuário começou a falar após o início da gravação
+        // ou após uma pausa, preenche o intervalo com silêncio para sincronizar as faixas
+        let currentSize = 0;
+        if (fs.existsSync(userFile)) {
+            currentSize = fs.statSync(userFile).size;
+        }
+
+        const elapsedMs = Date.now() - state.recordingStartTime;
+        let expectedBytes = Math.floor((elapsedMs / 1000) * 192000);
+        expectedBytes -= (expectedBytes % 4); // Alinhamento para amostras de 4 bytes (2ch * 16bits)
+
+        const padBytes = expectedBytes - currentSize;
+        if (padBytes > 0) {
+            padSilence(userFile, padBytes);
+        }
+
         const opusStream = receiver.subscribe(userId, {
             end: { behavior: EndBehaviorType.AfterSilence, duration: 2000 },
         });
 
-        const userFile = path.join(sessionDir, `${userId}.pcm`);
         const writeStream = createWriteStream(userFile, { flags: 'a' });
 
         const decoder = new prism.opus.Decoder({
@@ -842,6 +1558,21 @@ function stopRecording(guildId) {
     state.speakingHandler = null;
     state.recordingDir = null;
     state.recordingStartTime = null;
+
+    // Preencher o final de cada arquivo PCM para que todos tenham a duração total da sessão
+    const totalBytes = Math.floor((duration / 1000) * 192000);
+    try {
+        const pcmFiles = fs.readdirSync(sessionDir).filter(f => f.endsWith('.pcm'));
+        for (const pcmFile of pcmFiles) {
+            const pcmPath = path.join(sessionDir, pcmFile);
+            const currentSize = fs.statSync(pcmPath).size;
+            let padBytes = totalBytes - currentSize;
+            padBytes -= (padBytes % 4);
+            if (padBytes > 0) {
+                padSilence(pcmPath, padBytes);
+            }
+        }
+    } catch (_) {}
 
     // Atualizar metadados com hora de fim
     const metaPath = path.join(sessionDir, 'session.json');
@@ -992,7 +1723,7 @@ async function transcribeSession(sessionDir) {
         }
 
         console.log(`[Transcriber] Iniciando transcrição local para ${sessionDir}...`);
-        const proc = spawn('python', [scriptPath, '--session-dir', sessionDir]);
+        const proc = spawn('python', [scriptPath, '--session-dir', sessionDir, '--model', 'small']);
 
         proc.stdout.on('data', (d) => {
             console.log(`[Transcriber] ${d.toString().trim()}`);

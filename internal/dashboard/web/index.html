@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kenobi Bot — Painel de Controle do Mestre</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- App Container -->
+  <div class="app-layout">
+    
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="bot-badge">
+          <div class="bot-avatar-wrapper">
+            <img id="bot-avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%231e293b' stroke='%2338bdf8' stroke-width='4'/%3E%3Ctext x='50' y='58' font-size='32' text-anchor='middle' fill='%2338bdf8' font-family='sans-serif'%3E🧙‍♂️%3C/text%3E%3C/svg%3E" alt="Avatar">
+            <span class="status-indicator online" id="status-indicator"></span>
+          </div>
+          <div class="bot-title-group">
+            <h1 class="bot-name" id="bot-name">Kenobi D&D Bot</h1>
+            <span class="bot-tagline" id="bot-tagline">Conectado ao Discord • DAVE E2EE Áudio</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls: Server & Voice Channel Selector -->
+      <div class="header-center">
+        <div class="selector-card">
+          <div class="selector-field">
+            <label for="server-select">Servidor (Guild):</label>
+            <select id="server-select">
+              <option value="">Carregando servidores...</option>
+            </select>
+          </div>
+
+          <div class="selector-divider"></div>
+
+          <div class="selector-field">
+            <label for="voice-select">Canal de Voz:</label>
+            <select id="voice-select">
+              <option value="">Selecione um canal...</option>
+            </select>
+          </div>
+
+          <div class="voice-buttons">
+            <button id="btn-voice-connect" class="btn btn-primary btn-sm" title="Conectar ao canal de voz">
+              <span class="btn-icon">🔊</span> Conectar
+            </button>
+            <button id="btn-voice-disconnect" class="btn btn-outline-danger btn-sm" title="Desconectar do canal de voz">
+              <span class="btn-icon">🚪</span> Sair
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="system-stats">
+          <div class="stat-pill" title="Latência com o Gateway do Discord">
+            <span class="stat-icon">⚡</span>
+            <span id="stat-ping">-- ms</span>
+          </div>
+          <div class="stat-pill" title="Uptime do Bot">
+            <span class="stat-icon">⏳</span>
+            <span id="stat-uptime">00:00:00</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="app-nav">
+      <div class="nav-tabs">
+        <button class="nav-tab active" data-tab="tab-music" id="nav-btn-music">
+          <span class="tab-icon">🎵</span> Música & Sons
+        </button>
+        <button class="nav-tab" data-tab="tab-dice" id="nav-btn-dice">
+          <span class="tab-icon">🎲</span> Mesa de Dados
+        </button>
+        <button class="nav-tab" data-tab="tab-dnd" id="nav-btn-dnd">
+          <span class="tab-icon">🐉</span> Compêndio D&D 2024
+        </button>
+        <button class="nav-tab" data-tab="tab-characters" id="nav-btn-characters">
+          <span class="tab-icon">🛡️</span> Fichas de Personagem
+        </button>
+        <button class="nav-tab" data-tab="tab-record" id="nav-btn-record">
+          <span class="tab-icon">🎙️</span> Gravação de Sessão
+        </button>
+        <button class="nav-tab" data-tab="tab-chat" id="nav-btn-chat">
+          <span class="tab-icon">💬</span> Chat do Mestre
+        </button>
+        <button class="nav-tab" data-tab="tab-system" id="nav-btn-system">
+          <span class="tab-icon">📊</span> Diagnósticos & Logs
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="app-content">
+
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 1: MÚSICA & ÁUDIO -->
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      <section id="tab-music" class="tab-pane active">
+        <!-- Persistent Player Master Unit -->
+        <div class="player-unit-card">
+          <div class="player-left">
+            <div class="vinyl-record-container" id="vinyl-container">
+              <div class="vinyl-disc" id="vinyl-disc">
+                <div class="vinyl-grooves"></div>
+                <div class="vinyl-center-label">
+                  <span class="vinyl-icon" id="track-source-icon">🎵</span>
+                </div>
+              </div>
+            </div>
+            <div class="track-info">
+              <div class="track-badge-row">
+                <span class="badge badge-accent" id="playback-status-badge">Parado</span>
+                <span class="badge badge-subtle" id="playback-loop-badge">Loop: Off</span>
+              </div>
+              <h2 class="track-title" id="current-track-title">Nenhuma música tocando</h2>
+              <p class="track-requester" id="current-track-requester">Selecione uma faixa da biblioteca abaixo ou cole um link</p>
+            </div>
+          </div>
+
+          <div class="player-center">
+            <!-- Playback Controls -->
+            <div class="playback-controls">
+              <button id="ctrl-prev" class="btn-ctrl btn-prev" title="Voltar música (Música anterior ou reiniciar)">
+                <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+              </button>
+              
+              <button id="ctrl-play-pause" class="btn-ctrl btn-play-pause" title="Play / Pausar">
+                <svg id="svg-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <svg id="svg-pause" class="hidden" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+              </button>
+
+              <button id="ctrl-skip" class="btn-ctrl btn-skip" title="Avançar música (Próxima da fila)">
+                <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+              </button>
+
+              <button id="ctrl-stop" class="btn-ctrl btn-stop" title="Parar e limpar fila">
+                <svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
+              </button>
+
+              <button id="ctrl-loop" class="btn-ctrl btn-loop" title="Alternar Modo de Repetição">
+                <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+              </button>
+            </div>
+
+            <!-- Scrubber / Progress -->
+            <div class="scrubber-row">
+              <span class="scrub-time" id="time-current">00:00</span>
+              <div class="scrub-bar-track">
+                <div class="scrub-bar-fill" id="scrub-fill"></div>
+              </div>
+              <span class="scrub-time" id="time-total">00:00</span>
+            </div>
+          </div>
+
+          <div class="player-right">
+            <!-- Smooth Transition Switch -->
+            <div class="transition-pill-box" title="Transição Suave (Fade Out / Fade In) para evitar cortes secos ao trocar de música">
+              <label class="switch-smooth-transition">
+                <input type="checkbox" id="chk-smooth-transition" checked>
+                <span class="switch-slider"></span>
+              </label>
+              <div class="transition-label-group">
+                <span class="transition-title">✨ Transição Suave</span>
+                <select id="sel-fade-duration" class="select-fade-duration" title="Duração da transição entre músicas">
+                  <option value="1000">1.0s</option>
+                  <option value="1500" selected>1.5s</option>
+                  <option value="2000">2.0s</option>
+                  <option value="3000">3.0s</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Volume Control -->
+            <div class="volume-slider-group">
+              <button id="ctrl-mute" class="btn-icon-only" title="Mudo">
+                <span id="volume-icon">🔊</span>
+              </button>
+              <input type="range" id="volume-slider" min="0" max="150" value="100" class="styled-range">
+              <span class="volume-value" id="volume-label">100%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Universal Search & Quick Play Input -->
+        <div class="search-play-bar">
+          <div class="input-icon-wrapper">
+            <span class="input-icon">🔍</span>
+            <input type="text" id="play-search-input" placeholder="Digite o nome de uma música, artista, link do YouTube ou pesquise na biblioteca..." autocomplete="off">
+          </div>
+          <button id="btn-play-now" class="btn btn-primary" title="Tocar imediatamente">
+            <span class="btn-icon">▶️</span> Tocar Agora
+          </button>
+          <button id="btn-play-next" class="btn btn-warning" title="Escolher como a PRÓXIMA música a tocar (sem interromper a atual)">
+            <span class="btn-icon">⏭️</span> Tocar a Seguir
+          </button>
+          <button id="btn-play-fade" class="btn btn-accent-purple" title="Substituir música atual com Transição Suave (Fade imediato)">
+            <span class="btn-icon">✨</span> Fade Imediato
+          </button>
+          <button id="btn-play-queue" class="btn btn-outline-cyan" title="Adicionar ao final da fila">
+            <span class="btn-icon">➕</span> Fila
+          </button>
+        </div>
+
+        <!-- Split Grid: Audio Library & Current Queue -->
+        <div class="audio-main-grid">
+          
+          <!-- Library Column -->
+          <div class="library-container">
+            <div class="library-header">
+              <div class="library-subnav">
+                <button class="lib-tab active" data-lib="temas">🎭 Temas de Baróvia (CoS)</button>
+                <button class="lib-tab" data-lib="ambience">🏰 Ambientes & Cenários</button>
+                <button class="lib-tab" data-lib="local">📁 Músicas Locais</button>
+                <button class="lib-tab" data-lib="presets">🍻 Presets D&D</button>
+              </div>
+              <input type="text" id="lib-filter-input" placeholder="Filtrar biblioteca..." class="filter-input-sm">
+            </div>
+
+            <div class="library-content-scroll" id="library-cards-container">
+              <!-- Dynamically populated -->
+              <div class="loading-spinner">Carregando catálogo de áudio...</div>
+            </div>
+          </div>
+
+          <!-- Queue & History Column -->
+          <div class="queue-container">
+            <div class="panel-box">
+              <div class="panel-box-header">
+                <h3>📜 Fila de Reprodução (<span id="queue-count">0</span>)</h3>
+                <button id="btn-clear-queue" class="btn btn-ghost-danger btn-xs">Limpar Fila</button>
+              </div>
+              <div class="queue-list-scroll" id="queue-items-container">
+                <p class="empty-state">Fila de reprodução vazia.</p>
+              </div>
+            </div>
+
+            <div class="panel-box history-box">
+              <div class="panel-box-header">
+                <h3>🕰️ Histórico Recente</h3>
+              </div>
+              <div class="history-list-scroll" id="history-items-container">
+                <p class="empty-state">Nenhum histórico recente.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 2: MESA DE ROLAGEM DE DADOS -->
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      <section id="tab-dice" class="tab-pane">
+        <div class="dice-layout-grid">
+
+          <!-- Left: Interactive 3D D20 & Quick Dice -->
+          <div class="dice-interactive-card">
+            <div class="d20-showcase-wrapper">
+              <div class="d20-visual" id="interactive-d20" title="Clique para rolar o D20!">
+                <div class="d20-glow-ring"></div>
+                <div class="d20-core">
+                  <span class="d20-display-val" id="d20-display-val">20</span>
+                </div>
+              </div>
+              <p class="d20-click-hint">Clique no dado ou pressione <strong>R</strong> para rolar D20</p>
+            </div>
+
+            <!-- Quick Dice Buttons -->
+            <div class="quick-dice-grid">
+              <button class="btn-quick-die" data-die="d4">
+                <span class="die-name">D4</span>
+              </button>
+              <button class="btn-quick-die" data-die="d6">
+                <span class="die-name">D6</span>
+              </button>
+              <button class="btn-quick-die" data-die="d8">
+                <span class="die-name">D8</span>
+              </button>
+              <button class="btn-quick-die" data-die="d10">
+                <span class="die-name">D10</span>
+              </button>
+              <button class="btn-quick-die" data-die="d12">
+                <span class="die-name">D12</span>
+              </button>
+              <button class="btn-quick-die" data-die="d20">
+                <span class="die-name">D20</span>
+              </button>
+              <button class="btn-quick-die" data-die="d100">
+                <span class="die-name">D100</span>
+              </button>
+            </div>
+
+            <!-- Modifiers Quick Bar -->
+            <div class="quick-modifiers-row">
+              <span class="mod-label">Modificador:</span>
+              <button class="btn-mod" data-mod="-2">-2</button>
+              <button class="btn-mod" data-mod="-1">-1</button>
+              <button class="btn-mod active" data-mod="0">+0</button>
+              <button class="btn-mod" data-mod="1">+1</button>
+              <button class="btn-mod" data-mod="2">+2</button>
+              <button class="btn-mod" data-mod="3">+3</button>
+              <button class="btn-mod" data-mod="4">+4</button>
+              <button class="btn-mod" data-mod="5">+5</button>
+            </div>
+          </div>
+
+          <!-- Center: Custom Roll Formula & Success Counting -->
+          <div class="dice-controls-card">
+            <div class="roll-mode-switcher">
+              <button class="btn-mode active" id="mode-btn-standard">🎲 Rolagem Padrão (Soma & Keep)</button>
+              <button class="btn-mode" id="mode-btn-success">🎯 Modo Sucessos / Falhas (/sus)</button>
+            </div>
+
+            <!-- Standard Roll Form -->
+            <div id="standard-roll-section">
+              <div class="form-group">
+                <label for="dice-notation-input">Fórmula / Notação:</label>
+                <div class="input-with-addons">
+                  <input type="text" id="dice-notation-input" value="1d20" placeholder="ex: 1d20, 2d10+4, 4d6k3, 2d20k1">
+                  <button id="btn-roll-formula" class="btn btn-primary">Rolar Dados</button>
+                </div>
+              </div>
+
+              <div class="roll-options-grid">
+                <button class="btn-formula-chip" data-formula="2d20k1">✨ Vantagem (2d20k1)</button>
+                <button class="btn-formula-chip" data-formula="2d20kl1">💀 Desvantagem (2d20kl1)</button>
+                <button class="btn-formula-chip" data-formula="4d6k3">🛡️ Atributos (4d6k3)</button>
+                <button class="btn-formula-chip" data-formula="8d6">🔥 Bola de Fogo (8d6)</button>
+                <button class="btn-formula-chip" data-formula="1d8+3">⚔️ Dano Espada (1d8+3)</button>
+                <button class="btn-formula-chip" data-formula="2d6">🔨 Dano Martelo (2d6)</button>
+              </div>
+            </div>
+
+            <!-- Success Roll Form (Hidden by default) -->
+            <div id="success-roll-section" class="hidden">
+              <div class="form-group">
+                <label for="success-dice-input">Quantidade e Tipo de Dados:</label>
+                <input type="text" id="success-dice-input" value="6d10" placeholder="ex: 6d10 ou 4d6+2d10 ou 6">
+              </div>
+              <div class="form-group">
+                <label for="success-threshold-input">Dificuldade Mínima (Alvo para Sucesso):</label>
+                <input type="number" id="success-threshold-input" value="6" min="1" max="100">
+                <span class="form-help">Dados com valor ≥ a este número contam como sucesso.</span>
+              </div>
+              <button id="btn-roll-successes" class="btn btn-accent btn-block">Rolar e Contar Sucessos</button>
+            </div>
+
+            <!-- Discord Sync Controls -->
+            <div class="discord-sync-box">
+              <div class="toggle-row">
+                <label class="switch">
+                  <input type="checkbox" id="chk-send-discord">
+                  <span class="slider round"></span>
+                </label>
+                <div class="toggle-text">
+                  <strong>Enviar resultado para o chat do Discord</strong>
+                  <span>Se desativado, a rolagem será secreta apenas para o Mestre nesta tela.</span>
+                </div>
+              </div>
+
+              <div class="form-group" id="channel-picker-group" style="margin-top: 10px;">
+                <label for="dice-channel-select">Canal de Texto de Destino:</label>
+                <select id="dice-channel-select">
+                  <option value="">Selecione o canal do Discord...</option>
+                </select>
+              </div>
+
+              <div class="toggle-row" style="margin-top: 10px;">
+                <label class="switch">
+                  <input type="checkbox" id="chk-reroll-1s">
+                  <span class="slider round"></span>
+                </label>
+                <div class="toggle-text">
+                  <strong>🍀 Sorte Halfling / GWF</strong>
+                  <span>Rerrola automaticamente resultados '1' no dado.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Last Roll Display Hero -->
+            <div class="last-roll-hero" id="last-roll-card">
+              <div class="roll-hero-header">
+                <span class="hero-formula" id="last-roll-formula">--</span>
+                <span class="hero-tag" id="last-roll-type">Último Resultado</span>
+              </div>
+              <div class="roll-hero-total" id="last-roll-total">0</div>
+              <div class="roll-hero-details" id="last-roll-breakdown">Aguardando rolagem...</div>
+            </div>
+          </div>
+
+          <!-- Right: Roll History Log -->
+          <div class="dice-history-card">
+            <div class="panel-box-header">
+              <h3>📜 Histórico de Rolagens</h3>
+              <button id="btn-clear-dice-history" class="btn btn-ghost-danger btn-xs">Limpar</button>
+            </div>
+            <div class="dice-history-scroll" id="dice-history-container">
+              <p class="empty-state">Nenhuma rolagem realizada nesta sessão.</p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 3: COMPÊNDIO D&D 2024 -->
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      <section id="tab-dnd" class="tab-pane">
+        <div class="dnd-compendium-layout">
+          <!-- Compendium Sidebar Subnav -->
+          <div class="dnd-sidebar">
+            <div class="compendium-categories">
+              <button class="comp-cat-btn active" data-cat="spells">
+                <span class="cat-icon">✨</span> Magias (340+)
+              </button>
+              <button class="comp-cat-btn" data-cat="monsters">
+                <span class="cat-icon">🐉</span> Bestiário & Monstros
+              </button>
+              <button class="comp-cat-btn" data-cat="classes">
+                <span class="cat-icon">⚔️</span> Classes & Subclasses
+              </button>
+              <button class="comp-cat-btn" data-cat="items">
+                <span class="cat-icon">🛡️</span> Itens & Maestrias
+              </button>
+              <button class="comp-cat-btn" data-cat="species">
+                <span class="cat-icon">🧝</span> Espécies & Ravenloft
+              </button>
+              <button class="comp-cat-btn" data-cat="rules">
+                <span class="cat-icon">📖</span> Glossário de Regras
+              </button>
+            </div>
+
+            <!-- Quick Filters for current category -->
+            <div class="comp-filters-box" id="comp-filters-box">
+              <label for="comp-search-input">Busca Rápida:</label>
+              <input type="text" id="comp-search-input" placeholder="Digite para filtrar..." class="styled-input">
+              
+              <div id="dynamic-filters">
+                <!-- Injected via JavaScript based on category (e.g. spell levels, monster CR) -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Compendium Items Explorer & Detail View -->
+          <div class="dnd-main-view">
+            <!-- Items Grid -->
+            <div class="compendium-grid-panel">
+              <div class="grid-header">
+                <h3 id="compendium-list-title">Magias Oficiais 2024</h3>
+                <span class="item-count-badge" id="comp-count-badge">0 itens</span>
+              </div>
+              <div class="compendium-cards-scroll" id="compendium-cards-container">
+                <div class="loading-spinner">Carregando dados do Compêndio...</div>
+              </div>
+            </div>
+
+            <!-- Detail Modal / Side Sheet -->
+            <div class="compendium-detail-panel" id="compendium-detail-panel">
+              <div class="detail-placeholder" id="detail-placeholder">
+                <span class="ph-icon">📜</span>
+                <h3>Selecione um item</h3>
+                <p>Clique em qualquer magia, monstro, classe ou item da lista para ver sua ficha completa e enviar para o Discord.</p>
+              </div>
+
+              <div class="detail-content hidden" id="detail-content">
+                <!-- Dynamically filled with full card stats -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      <!-- TAB: FICHAS DE PERSONAGEM (D&D 2024 / 5.5e) -->
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      <section id="tab-characters" class="tab-pane">
+        <div class="characters-layout">
+          <!-- Character List Sidebar -->
+          <div class="characters-sidebar">
+            <div class="characters-sidebar-header">
+              <div class="sidebar-title-row">
+                <h3>🛡️ Heróis da Mesa</h3>
+                <span class="badge badge-purple" id="characters-count-badge">4 Fichas</span>
+              </div>
+              <p class="sidebar-subtitle">Fichas ativas integradas com atributos, perícias, ataques e PVs em tempo real</p>
+              <div class="characters-search-box">
+                <input type="text" id="character-search-input" class="form-input form-input-sm" placeholder="🔍 Filtrar herói ou classe...">
+              </div>
+            </div>
+            <div class="characters-cards-list" id="characters-list-container">
+              <div class="loading-spinner">Carregando fichas...</div>
+            </div>
+          </div>
+
+          <!-- Character Sheet Detail View -->
+          <div class="character-sheet-container" id="character-sheet-container">
+            <div class="character-sheet-empty" id="character-sheet-empty">
+              <div class="empty-state-icon">🛡️</div>
+              <h3>Selecione uma Ficha de Personagem</h3>
+              <p>Escolha um dos heróis na lista à esquerda para inspecionar atributos, perícias, magias, ataques, gerenciar PVs e postar a ficha no canal do Discord.</p>
+            </div>
+            <div class="character-sheet-content hidden" id="character-sheet-content">
+              <!-- Dynamically populated with full interactive sheet -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 4: GRAVAÇÃO DE SESSÃO -->
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      <section id="tab-record" class="tab-pane">
+        <div class="record-layout-grid">
+          
+          <!-- Live Session Recorder Card -->
+          <div class="recorder-card">
+            <div class="recorder-status-header">
+              <div class="record-pulse-dot" id="record-pulse-dot"></div>
+              <div class="record-status-texts">
+                <h2 id="record-state-title">Gravador Inativo</h2>
+                <p id="record-state-subtitle">Selecione o canal de voz da mesa no topo antes de iniciar</p>
+              </div>
+            </div>
+
+            <!-- Giant Stopwatch -->
+            <div class="stopwatch-display">
+              <span class="stopwatch-time" id="recorder-stopwatch">00:00:00</span>
+              <span class="stopwatch-label">Tempo Decorrido da Sessão</span>
+            </div>
+
+            <!-- Recording Controls -->
+            <div class="recorder-actions">
+              <button id="btn-start-record" class="btn btn-danger btn-lg">
+                <span class="btn-icon">🔴</span> Iniciar Gravação de Sessão
+              </button>
+              <button id="btn-stop-record" class="btn btn-outline-white btn-lg" disabled>
+                <span class="btn-icon">⏹️</span> Parar & Salvar Gravação
+              </button>
+            </div>
+
+            <div class="recording-instructions">
+              <h4>🛡️ Como funciona a Gravação com DAVE E2EE:</h4>
+              <ul>
+                <li>O bot escuta todas as faixas individuais de áudio de cada jogador no canal de voz.</li>
+                <li>Ao finalizar, gera um áudio mixado em formato padrão na pasta <code>gravacoes/</code>.</li>
+                <li>Gera automaticamente a transcrição da sessão caso o módulo Python de transcrição esteja ativado.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Saved Recordings Explorer -->
+          <div class="recordings-explorer-card">
+            <div class="panel-box-header">
+              <h3>📂 Sessões Gravadas</h3>
+              <button id="btn-refresh-recordings" class="btn btn-ghost-cyan btn-xs">Recarregar</button>
+            </div>
+            
+            <div class="recordings-list-scroll" id="recordings-list-container">
+              <p class="empty-state">Nenhuma gravação encontrada na pasta <code>gravacoes/</code>.</p>
+            </div>
+
+            <!-- In-browser Audio Player for recorded files -->
+            <div class="preview-player-box" id="preview-player-box">
+              <h4>🎧 Player de Revisão de Sessão:</h4>
+              <audio id="recording-audio-preview" controls class="styled-audio-player"></audio>
+              <span class="preview-filename" id="preview-filename">Nenhum arquivo selecionado</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 5: CHAT DO MESTRE -->
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      <section id="tab-chat" class="tab-pane">
+        <div class="master-chat-layout">
+          <div class="panel-box chat-panel">
+            <div class="panel-box-header">
+              <h3>📢 Enviar Mensagem como o Bot</h3>
+              <span class="badge badge-subtle">Permite ao Mestre falar como NPCs ou enviar avisos</span>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+              <label for="chat-channel-select">Canal de Texto de Destino:</label>
+              <select id="chat-channel-select" class="styled-select">
+                <option value="">Selecione um canal...</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="chat-message-input">Mensagem:</label>
+              <textarea id="chat-message-input" rows="6" class="styled-textarea" placeholder="Digite a narração, fala de NPC ou anúncio aqui..."></textarea>
+            </div>
+
+            <div class="chat-actions-row">
+              <button id="btn-send-chat" class="btn btn-primary">
+                <span class="btn-icon">🚀</span> Enviar no Discord
+              </button>
+            </div>
+
+            <div class="npc-presets-row">
+              <span class="preset-label">Atalhos de Fala de NPCs:</span>
+              <button class="btn-chip" data-npc="strahd">🧛 Strahd von Zarovich</button>
+              <button class="btn-chip" data-npc="madam_eva">🔮 Madame Eva</button>
+              <button class="btn-chip" data-npc="van_richten">🏹 Rudolph van Richten</button>
+              <button class="btn-chip" data-npc="baba_lysaga">🧙‍♀️ Baba Lysaga</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 6: DIAGNÓSTICOS & LOGS DO SISTEMA -->
+      <!-- ════════════════════════════════════════════════════════════════ -->
+      <section id="tab-system" class="tab-pane">
+        <div class="system-layout-grid">
+          
+          <!-- Left: Preflight Health & Doctor Report -->
+          <div class="health-doctor-card">
+            <div class="panel-box-header">
+              <h3>🛡️ Saúde do Sistema & Preflight Doctor</h3>
+              <button id="btn-run-doctor" class="btn btn-outline-cyan btn-sm">Executar Verificação</button>
+            </div>
+
+            <div class="health-summary-banner" id="health-summary-banner">
+              <div class="health-stat pass"><span id="health-pass-count">0</span> Passou</div>
+              <div class="health-stat warn"><span id="health-warn-count">0</span> Avisos</div>
+              <div class="health-stat fail"><span id="health-fail-count">0</span> Falhas</div>
+            </div>
+
+            <div class="health-checks-list" id="health-checks-container">
+              <div class="loading-spinner">Verificando subsistemas...</div>
+            </div>
+          </div>
+
+          <!-- Right: Live Terminal Log Viewer -->
+          <div class="logs-terminal-card">
+            <div class="panel-box-header">
+              <h3>💻 Console de Logs em Tempo Real</h3>
+              <div class="log-controls">
+                <button id="btn-clear-logs" class="btn btn-ghost-white btn-xs">Limpar</button>
+              </div>
+            </div>
+
+            <div class="terminal-body" id="terminal-logs">
+              <div class="log-line info">[SISTEMA] Console do Painel de Controle Kenobi inicializado.</div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Global Toast / Alert Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Modal: Editar Ficha de Personagem -->
+    <div id="modal-edit-character" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">
+            <span>✏️ Editar Ficha de Personagem</span>
+          </div>
+          <button id="btn-close-edit-modal" class="modal-close-btn" title="Fechar">&times;</button>
+        </div>
+        <form id="form-edit-character" class="modal-body">
+          <input type="hidden" id="edit-char-id">
+
+          <!-- Seção 1: Dados Básicos -->
+          <div class="form-section-title">👤 Identidade & Jogador Dono</div>
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label for="edit-char-name">Nome do Personagem:</label>
+              <input type="text" id="edit-char-name" class="styled-input" required>
+            </div>
+            <div class="form-group">
+              <label for="edit-char-race">Espécie / Raça:</label>
+              <input type="text" id="edit-char-race" class="styled-input">
+            </div>
+            <div class="form-group">
+              <label for="edit-char-userid">Dono (Discord User ID):</label>
+              <input type="text" id="edit-char-userid" class="styled-input" placeholder="ID Discord da jogadora">
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label for="edit-char-class">Classe:</label>
+              <input type="text" id="edit-char-class" class="styled-input" required>
+            </div>
+            <div class="form-group">
+              <label for="edit-char-subclass">Subclasse / Especialização:</label>
+              <input type="text" id="edit-char-subclass" class="styled-input">
+            </div>
+            <div class="form-group">
+              <label for="edit-char-level">Nível (1-20):</label>
+              <input type="number" id="edit-char-level" class="styled-input" min="1" max="20" required>
+            </div>
+          </div>
+
+          <!-- Seção 2: Combate & Vitais -->
+          <div class="form-section-title">🛡️ Combate & Vitais</div>
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label for="edit-char-ac">Classe de Armadura (CA):</label>
+              <input type="number" id="edit-char-ac" class="styled-input" min="1" max="40">
+            </div>
+            <div class="form-group">
+              <label for="edit-char-speed">Deslocamento:</label>
+              <input type="text" id="edit-char-speed" class="styled-input" placeholder="ex: 12m ou 40 ft">
+            </div>
+            <div class="form-group">
+              <label for="edit-char-hp-max">PV Máximo:</label>
+              <input type="number" id="edit-char-hp-max" class="styled-input" min="1">
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="edit-char-hp-curr">PV Atual:</label>
+              <input type="number" id="edit-char-hp-curr" class="styled-input" min="0">
+            </div>
+            <div class="form-group">
+              <label for="edit-char-hp-temp">PV Temporário:</label>
+              <input type="number" id="edit-char-hp-temp" class="styled-input" min="0">
+            </div>
+          </div>
+
+          <!-- Seção 3: Atributos -->
+          <div class="form-section-title">🎲 Atributos (Valores 1 a 30)</div>
+          <div class="form-grid-6">
+            <div class="form-group">
+              <label for="edit-char-str">FOR:</label>
+              <input type="number" id="edit-char-str" class="styled-input" min="1" max="30">
+            </div>
+            <div class="form-group">
+              <label for="edit-char-dex">DES:</label>
+              <input type="number" id="edit-char-dex" class="styled-input" min="1" max="30">
+            </div>
+            <div class="form-group">
+              <label for="edit-char-con">CON:</label>
+              <input type="number" id="edit-char-con" class="styled-input" min="1" max="30">
+            </div>
+            <div class="form-group">
+              <label for="edit-char-int">INT:</label>
+              <input type="number" id="edit-char-int" class="styled-input" min="1" max="30">
+            </div>
+            <div class="form-group">
+              <label for="edit-char-wis">SAB:</label>
+              <input type="number" id="edit-char-wis" class="styled-input" min="1" max="30">
+            </div>
+            <div class="form-group">
+              <label for="edit-char-cha">CAR:</label>
+              <input type="number" id="edit-char-cha" class="styled-input" min="1" max="30">
+            </div>
+          </div>
+
+          <!-- Seção 4: Moedas -->
+          <div class="form-section-title">💰 Tesouro & Moedas</div>
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label for="edit-char-gp">Ouro (GP):</label>
+              <input type="number" id="edit-char-gp" class="styled-input" min="0">
+            </div>
+            <div class="form-group">
+              <label for="edit-char-sp">Prata (SP):</label>
+              <input type="number" id="edit-char-sp" class="styled-input" min="0">
+            </div>
+            <div class="form-group">
+              <label for="edit-char-cp">Cobre (CP):</label>
+              <input type="number" id="edit-char-cp" class="styled-input" min="0">
+            </div>
+          </div>
+        </form>
+        <div class="modal-footer">
+          <button type="button" id="btn-cancel-edit-char" class="btn btn-outline-white">Cancelar</button>
+          <button type="button" id="btn-save-edit-char" class="btn btn-primary">
+            <span class="btn-icon">💾</span> Salvar Alterações
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

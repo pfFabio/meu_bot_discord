@@ -45,4 +45,21 @@ func TestUserPreferences(t *testing.T) {
 			t.Errorf("Preferência persistida deveria ser true")
 		}
 	})
+
+	t.Run("SuccessThreshold padrão e customizado", func(t *testing.T) {
+		pref := service.GetPreferences("user_300")
+		if pref.SuccessThreshold != userpref.DefaultSuccessThreshold {
+			t.Errorf("SuccessThreshold padrão deveria ser %d, obteve %d", userpref.DefaultSuccessThreshold, pref.SuccessThreshold)
+		}
+
+		updated := service.SetSuccessThreshold("user_300", 6)
+		if updated != 6 {
+			t.Errorf("Esperado 6 após SetSuccessThreshold, obteve %d", updated)
+		}
+
+		prefUpdated := service.GetPreferences("user_300")
+		if prefUpdated.SuccessThreshold != 6 {
+			t.Errorf("SuccessThreshold persistido deveria ser 6, obteve %d", prefUpdated.SuccessThreshold)
+		}
+	})
 }

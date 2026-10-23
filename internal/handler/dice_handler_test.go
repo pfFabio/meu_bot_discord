@@ -91,6 +91,125 @@ func TestDiceHandler(t *testing.T) {
 			expectHandle: false,
 		},
 		{
+			name:         "Mensagem 'sus 4d6+5d20+2d10'",
+			content:      "sus 4d6+5d20+2d10",
+			authorID:     "user1",
+			botID:        "bot1",
+			expectHandle: true,
+		},
+		{
+			name:         "Mensagem '/sus 4d6+5d20+2d10'",
+			content:      "/sus 4d6+5d20+2d10",
+			authorID:     "user1",
+			botID:        "bot1",
+			expectHandle: true,
+		},
+		{
+			name:         "Mensagem 'sus 4d6+5d20 6'",
+			content:      "sus 4d6+5d20 6",
+			authorID:     "user1",
+			botID:        "bot1",
+			expectHandle: true,
+		},
+		{
+			name:         "Mensagem 'sus 4d6+5d20+6'",
+			content:      "sus 4d6+5d20+6",
+			authorID:     "user1",
+			botID:        "bot1",
+			expectHandle: true,
+		},
+		{
+			name:         "Mensagem 'sus 6d10 8'",
+			content:      "sus 6d10 8",
+			authorID:     "user1",
+			botID:        "bot1",
+			expectHandle: true,
+		},
+		{
+			name:         "Mensagem 'sus 3d61d20'",
+			content:      "sus 3d61d20",
+			authorID:     "user1",
+			botID:        "bot1",
+			expectHandle: true,
+		},
+		{
+			name:         "Mensagem '/sus 3d61d20'",
+			content:      "/sus 3d61d20",
+			authorID:     "user1",
+			botID:        "bot1",
+			expectHandle: true,
+		},
+		{
+			name:         "Mensagem 'sus 6d10'",
+			content:      "sus 6d10",
+			authorID:     "user1",
+			botID:        "bot1",
+			expectHandle: true,
+		},
+		{
+			name:         "Mensagem 'limsus 5'",
+			content:      "limsus 5",
+			authorID:     "user1",
+			botID:        "bot1",
+			expectHandle: true,
+		},
+		{
+			name:         "Mensagem '/limsus 5'",
+			content:      "/limsus 5",
+			authorID:     "user1",
+			botID:        "bot1",
+			expectHandle: true,
+		},
+		{
+			name:         "Mensagem 'limitesus 6'",
+			content:      "limitesus 6",
+			authorID:     "user1",
+			botID:        "bot1",
+			expectHandle: true,
+		},
+		{
+			name:         "Mensagem 'sucs 6d10'",
+			content:      "sucs 6d10",
+			authorID:     "user1",
+			botID:        "bot1",
+			expectHandle: true,
+		},
+		{
+			name:         "Mensagem '/sucs 6d10'",
+			content:      "/sucs 6d10",
+			authorID:     "user1",
+			botID:        "bot1",
+			expectHandle: true,
+		},
+		{
+			name:         "Mensagem 'sucs 6'",
+			content:      "sucs 6",
+			authorID:     "user1",
+			botID:        "bot1",
+			expectHandle: true,
+		},
+		{
+			name:         "Mensagem 'limsucs 5'",
+			content:      "limsucs 5",
+			authorID:     "user1",
+			botID:        "bot1",
+			expectHandle: true,
+		},
+		{
+			name:         "Mensagem '/limsucs 5'",
+			content:      "/limsucs 5",
+			authorID:     "user1",
+			botID:        "bot1",
+			expectHandle: true,
+		},
+		{
+			name:         "Mensagem 'limitesucs 6'",
+			content:      "limitesucs 6",
+			authorID:     "user1",
+			botID:        "bot1",
+			expectHandle: true,
+		},
+		{
 			name:         "Mensagem do próprio bot",
 			content:      "d20",
 			authorID:     "bot1",
@@ -113,6 +232,14 @@ func TestDiceHandler(t *testing.T) {
 		pref := prefService.GetPreferences("user_luck")
 		if !pref.HalflingLuck {
 			t.Errorf("HalflingLuck deveria estar ativado para user_luck")
+		}
+	})
+
+	t.Run("Integração com limite de sucesso (limsucs)", func(t *testing.T) {
+		prefService.SetSuccessThreshold("user_sucs", 6)
+		pref := prefService.GetPreferences("user_sucs")
+		if pref.SuccessThreshold != 6 {
+			t.Errorf("SuccessThreshold deveria ser 6 para user_sucs, obteve %d", pref.SuccessThreshold)
 		}
 	})
 }
