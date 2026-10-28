@@ -346,6 +346,7 @@ setTimeout(probeLocalDurations, 1000);
 // Carregar .env
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
+const MERGE_RECORDINGS = process.env.MERGE_RECORDINGS === 'true';
 const TOKEN = process.env.DISCORD_TOKEN;
 const PORT = process.env.AUDIO_BRIDGE_PORT || 2389;
 
@@ -1875,7 +1876,9 @@ app.post('/record/stop', async (req, res) => {
 
         // Converter PCM → OGG
         const oggFiles = await convertPcmToOgg(result.sessionDir);
-        const mergedFile = await mergeAllTracks(result.sessionDir);
+        const mergedFile = MERGE_RECORDINGS
+            ? await mergeAllTracks(result.sessionDir)
+            : null;
 
         // Executar transcrição automática com Whisper local
         const transcriptionFile = await transcribeSession(result.sessionDir);
