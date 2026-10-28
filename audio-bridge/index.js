@@ -18,6 +18,17 @@ import fs from 'fs';
 import { createWriteStream } from 'fs';
 import { fileURLToPath } from 'url';
 import prism from 'prism-media';
+import {
+    readRecordingState,
+    writeRecordingState,
+    touchRecordingState,
+    clearRecordingState,
+    clearRecordingCheckpoint,
+    writeRecordingCheckpoint,
+    recoverPendingRecordings,
+    shouldWarnForRecordingSilence,
+    isRecordingHeartbeatStale,
+} from './recording_recovery.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -475,6 +486,10 @@ function getOrCreateState(guildId) {
             recordingDir: null,
             recordingStartTime: null,
             speakingHandler: null,
+            lastAudioActivityAt: null,
+            lastHeartbeat: null,
+            recordingSilenceWarningSentAt: null,
+            recordingSilenceCheck: null,
         });
     }
     return guildStates.get(guildId);
@@ -489,6 +504,80 @@ function cleanupActiveProcesses(state) {
         }
         state.activeProcesses = [];
     }
+}
+
+function getRecordingWarningChannel(guildId) {
+    const guild = client.guilds.cache.get(guildId);
+    if (!guild) return null;
+
+    const canSend = (channel) => {
+        if (!channel || channel.type !== 0) return false;
+        return channel.permissionsFor(client.user.id)?.has('SendMessages');
+    };
+
+    return guild.channels.cache.find(canSend) || null;
+}
+
+function persistRecordingCheckpoint(guildId, now = Date.now()) {
+    const state = guildStates.get(guildId);
+    if (!state || !state.isRecording || !state.recordingDir) {
+        return false;
+    }
+
+    state.lastHeartbeat = now;
+    const snapshot = {
+        guildId,
+        sessionDir: state.recordingDir,
+        channelId: state.connection?.joinConfig?.channelId || null,
+        recordingStartTime: state.recordingStartTime,
+        lastAudioActivityAt: state.lastAudioActivityAt || now,
+        lastHeartbeat: now,
+        participants: (() => {
+            try {
+                const meta = JSON.parse(fs.readFileSync(path.join(state.recordingDir, 'session.json'), 'utf8'));
+                return meta.participants || {};
+            } catch (_) {
+                return {};
+            }
+        })(),
+    };
+
+    writeRecordingState(snapshot, RECORDINGS_DIR);
+    writeRecordingCheckpoint(guildId, snapshot, RECORDINGS_DIR);
+    return true;
+}
+
+function maybeWarnRecordingSilence(guildId, now = Date.now()) {
+    const state = guildStates.get(guildId);
+    if (!shouldWarnForRecordingSilence(state, now)) {
+        return;
+    }
+
+    const channel = getRecordingWarningChannel(guildId);
+    if (!channel) {
+        state.recordingSilenceWarningSentAt = now;
+        return;
+    }
+
+    const silenceSeconds = Math.round((now - state.lastAudioActivityAt) / 1000);
+    channel.send(`⚠️ Gravação sem áudio por ${silenceSeconds}s. Verifique se a chamada ainda está ativa.`)
+        .catch((err) => console.warn('[Recorder] Falha ao enviar aviso de silêncio:', err.message));
+
+    state.recordingSilenceWarningSentAt = now;
+}
+
+function startRecordingMonitor(guildId, state) {
+    if (state.recordingSilenceCheck) {
+        clearInterval(state.recordingSilenceCheck);
+    }
+    state.recordingSilenceCheck = setInterval(() => {
+        const now = Date.now();
+        persistRecordingCheckpoint(guildId, now);
+        if (isRecordingHeartbeatStale(state, now, 90000)) {
+            console.warn(`[Recorder] Heartbeat estagnado para guild ${guildId}. Tentando reconstruir o estado de gravação.`);
+        }
+        maybeWarnRecordingSilence(guildId, now);
+    }, 15000);
 }
 
 // Extrai a URL direta de áudio HTTPS usando yt-dlp
@@ -1421,7 +1510,7 @@ async function reconnectForRecording(guildId, shouldRecord) {
 }
 
 // Atualiza o JSON de metadados com o participante
-function updateSessionParticipant(sessionDir, userId, username) {
+function updateSessionParticipant(sessionDir, userId, username, guildId = null) {
     const metaPath = path.join(sessionDir, 'session.json');
     try {
         const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
@@ -1431,6 +1520,14 @@ function updateSessionParticipant(sessionDir, userId, username) {
                 joinedAt: new Date().toISOString(),
             };
             fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2));
+        }
+
+        if (guildId) {
+            touchRecordingState(guildId, {
+                sessionDir,
+                participants: meta.participants,
+                lastHeartbeat: Date.now(),
+            }, RECORDINGS_DIR);
         }
     } catch (_) {}
 }
@@ -1449,6 +1546,49 @@ function padSilence(filePath, padBytes) {
     fs.closeSync(fd);
 }
 
+function attachRecordingCapture(guildId, state, sessionDir) {
+    const receiver = state.connection.receiver;
+    const speakingHandler = (userId) => {
+        if (state.recordingStreams.has(userId)) return;
+
+        console.log(`[Recorder] Usuário ${userId} começou a falar na guild ${guildId}`);
+        state.lastAudioActivityAt = Date.now();
+        state.lastHeartbeat = Date.now();
+        state.recordingSilenceWarningSentAt = null;
+        persistRecordingCheckpoint(guildId, state.lastAudioActivityAt);
+
+        const userFile = path.join(sessionDir, `${userId}.pcm`);
+        let currentSize = fs.existsSync(userFile) ? fs.statSync(userFile).size : 0;
+        let expectedBytes = Math.floor(((Date.now() - state.recordingStartTime) / 1000) * 192000);
+        expectedBytes -= expectedBytes % 4;
+        const padBytes = expectedBytes - currentSize;
+        if (padBytes > 0) padSilence(userFile, padBytes);
+
+        const opusStream = receiver.subscribe(userId, {
+            end: { behavior: EndBehaviorType.AfterSilence, duration: 2000 },
+        });
+        const writeStream = createWriteStream(userFile, { flags: 'a' });
+        const decoder = new prism.opus.Decoder({ rate: 48000, channels: 2, frameSize: 960 });
+
+        pipeline(opusStream, decoder, writeStream, (err) => {
+            if (err && err.code !== 'ERR_STREAM_PREMATURE_CLOSE') {
+                console.error(`[Recorder] Erro no pipeline do user ${userId}:`, err.message);
+            }
+            state.recordingStreams.delete(userId);
+        });
+        state.recordingStreams.set(userId, { writeStream, decoder, opusStream });
+
+        client.guilds.fetch(guildId).then(g => g.members.fetch(userId)).then(m => {
+            updateSessionParticipant(sessionDir, userId, m.displayName || m.user.username, guildId);
+        }).catch(() => {
+            updateSessionParticipant(sessionDir, userId, userId, guildId);
+        });
+    };
+
+    receiver.speaking.on('start', speakingHandler);
+    state.speakingHandler = speakingHandler;
+}
+
 // Inicia a captura de áudio de todos os usuários no canal de voz
 function startRecording(guildId) {
     const state = guildStates.get(guildId);
@@ -1462,71 +1602,29 @@ function startRecording(guildId) {
     state.isRecording = true;
     state.recordingDir = sessionDir;
     state.recordingStartTime = Date.now();
+    state.lastAudioActivityAt = Date.now();
+    state.lastHeartbeat = Date.now();
+    state.recordingSilenceWarningSentAt = null;
+
+    startRecordingMonitor(guildId, state);
 
     // Salvar metadados iniciais da sessão
     fs.writeFileSync(path.join(sessionDir, 'session.json'), JSON.stringify({
         guildId,
+        channelId: state.connection?.joinConfig?.channelId || null,
         startTime: new Date().toISOString(),
         participants: {},
     }, null, 2));
 
-    // Handler para capturar cada usuário que fala
-    const speakingHandler = (userId) => {
-        // Ignorar se já temos um stream ativo para este usuário
-        if (state.recordingStreams.has(userId)) return;
+    writeRecordingState({
+        guildId,
+        sessionDir,
+        channelId: state.connection?.joinConfig?.channelId || null,
+        recordingStartTime: state.recordingStartTime,
+        participants: {},
+    }, RECORDINGS_DIR);
 
-        console.log(`[Recorder] Usuário ${userId} começou a falar na guild ${guildId}`);
-
-        const userFile = path.join(sessionDir, `${userId}.pcm`);
-
-        // Sincronização temporal: se o usuário começou a falar após o início da gravação
-        // ou após uma pausa, preenche o intervalo com silêncio para sincronizar as faixas
-        let currentSize = 0;
-        if (fs.existsSync(userFile)) {
-            currentSize = fs.statSync(userFile).size;
-        }
-
-        const elapsedMs = Date.now() - state.recordingStartTime;
-        let expectedBytes = Math.floor((elapsedMs / 1000) * 192000);
-        expectedBytes -= (expectedBytes % 4); // Alinhamento para amostras de 4 bytes (2ch * 16bits)
-
-        const padBytes = expectedBytes - currentSize;
-        if (padBytes > 0) {
-            padSilence(userFile, padBytes);
-        }
-
-        const opusStream = receiver.subscribe(userId, {
-            end: { behavior: EndBehaviorType.AfterSilence, duration: 2000 },
-        });
-
-        const writeStream = createWriteStream(userFile, { flags: 'a' });
-
-        const decoder = new prism.opus.Decoder({
-            rate: 48000,
-            channels: 2,
-            frameSize: 960,
-        });
-
-        pipeline(opusStream, decoder, writeStream, (err) => {
-            if (err && err.code !== 'ERR_STREAM_PREMATURE_CLOSE') {
-                console.error(`[Recorder] Erro no pipeline do user ${userId}:`, err.message);
-            }
-            state.recordingStreams.delete(userId);
-        });
-
-        state.recordingStreams.set(userId, { writeStream, decoder, opusStream });
-
-        // Buscar nome legível do usuário no Discord (apelido no servidor ou username)
-        client.guilds.fetch(guildId).then(g => g.members.fetch(userId)).then(m => {
-            const name = m.displayName || m.user.username;
-            updateSessionParticipant(sessionDir, userId, name);
-        }).catch(() => {
-            updateSessionParticipant(sessionDir, userId, userId);
-        });
-    };
-
-    receiver.speaking.on('start', speakingHandler);
-    state.speakingHandler = speakingHandler;
+    attachRecordingCapture(guildId, state, sessionDir);
 
     console.log(`[Recorder] Gravação iniciada na guild ${guildId} → ${sessionDir}`);
     return { sessionDir, sessionId };
@@ -1555,9 +1653,17 @@ function stopRecording(guildId) {
     if (state.speakingHandler && state.connection && state.connection.receiver) {
         state.connection.receiver.speaking.removeListener('start', state.speakingHandler);
     }
+    if (state.recordingSilenceCheck) {
+        clearInterval(state.recordingSilenceCheck);
+    }
     state.speakingHandler = null;
     state.recordingDir = null;
     state.recordingStartTime = null;
+    state.lastAudioActivityAt = null;
+    state.lastHeartbeat = null;
+    state.recordingSilenceWarningSentAt = null;
+    state.recordingSilenceCheck = null;
+    clearRecordingCheckpoint(guildId, RECORDINGS_DIR);
 
     // Preencher o final de cada arquivo PCM para que todos tenham a duração total da sessão
     const totalBytes = Math.floor((duration / 1000) * 192000);
@@ -1583,6 +1689,8 @@ function stopRecording(guildId) {
         fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2));
     } catch (_) {}
 
+    clearRecordingState(guildId, RECORDINGS_DIR);
+    clearRecordingCheckpoint(guildId, RECORDINGS_DIR);
     console.log(`[Recorder] Gravação encerrada na guild ${guildId} — duração: ${Math.round(duration / 1000)}s`);
     return { sessionDir, durationMs: duration };
 }
@@ -1789,18 +1897,81 @@ app.post('/record/stop', async (req, res) => {
 // GET /record/status/:guildId - Status da gravação atual
 app.get('/record/status/:guildId', (req, res) => {
     const state = guildStates.get(req.params.guildId);
-    if (!state || !state.isRecording) {
-        return res.json({ isRecording: false });
+    if (state && state.isRecording) {
+        return res.json({
+            isRecording: true,
+            sessionDir: state.recordingDir,
+            durationMs: Date.now() - state.recordingStartTime,
+            participants: state.recordingStreams.size,
+        });
     }
-    res.json({
-        isRecording: true,
-        sessionDir: state.recordingDir,
-        durationMs: Date.now() - state.recordingStartTime,
-        participants: state.recordingStreams.size,
-    });
+
+    const persisted = readRecordingState(req.params.guildId, RECORDINGS_DIR);
+    if (persisted && persisted.sessionDir) {
+        return res.json({
+            isRecording: true,
+            sessionDir: persisted.sessionDir,
+            durationMs: Date.now() - (persisted.recordingStartTime || Date.now()),
+            participants: Object.keys(persisted.participants || {}).length,
+        });
+    }
+
+    return res.json({ isRecording: false });
 });
 
-client.once('clientReady', () => {
+async function recoverPendingRecordingSessions() {
+    const pending = recoverPendingRecordings(RECORDINGS_DIR);
+    for (const session of pending) {
+        if (!session?.guildId) continue;
+
+        const state = getOrCreateState(session.guildId);
+        state.isRecording = true;
+        state.recordingDir = session.sessionDir;
+        state.recordingStartTime = session.recordingStartTime || Date.now();
+        state.lastAudioActivityAt = session.lastAudioActivityAt || state.recordingStartTime;
+        state.lastHeartbeat = session.lastHeartbeat || Date.now();
+        state.recordingSessionId = session.sessionId || path.basename(session.sessionDir);
+
+        console.warn(`[Recorder] Sessão pendente recuperada da pasta gravacoes para guild ${session.guildId}: ${session.sessionDir}`);
+
+        if (session.channelId && client.isReady()) {
+            try {
+                const guild = await client.guilds.fetch(session.guildId);
+                const channelId = session.channelId;
+                if (!state.connection ||
+                    state.connection.state.status === VoiceConnectionStatus.Destroyed ||
+                    state.connection.joinConfig.channelId !== channelId) {
+                    state.connection?.destroy();
+                    state.connection = joinVoiceChannel({
+                        channelId,
+                        guildId: session.guildId,
+                        adapterCreator: guild.voiceAdapterCreator,
+                        selfDeaf: false,
+                        selfMute: false,
+                    });
+                    state.connection.subscribe(state.player);
+                }
+                if (!fs.existsSync(session.sessionDir)) {
+                    throw new Error(`Pasta da sessão não encontrada: ${session.sessionDir}`);
+                }
+                state.lastAudioActivityAt = Date.now();
+                state.lastHeartbeat = Date.now();
+                attachRecordingCapture(session.guildId, state, session.sessionDir);
+                startRecordingMonitor(session.guildId, state);
+                console.log(`[Recorder] Captura da gravação pendente retomada na guild ${session.guildId}`);
+            } catch (error) {
+                state.isRecording = false;
+                console.error(`[Recorder] Não foi possível recuperar a gravação pendente da guild ${session.guildId}:`, error.message);
+            }
+        } else {
+            state.isRecording = false;
+            console.error(`[Recorder] Sessão pendente da guild ${session.guildId} não pôde ser retomada: canal ou cliente Discord indisponível.`);
+        }
+    }
+}
+
+client.once('clientReady', async () => {
+    await recoverPendingRecordingSessions();
     console.log(`[AudioBridge] Conectado ao Discord como ${client.user.tag} (DAVE E2EE Pronto)`);
 });
 
